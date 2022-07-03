@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<!-- saved from url=(0087)http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A beginner’s guide to ACID and database transactions | Vlad Mihalcea's Blog</title>
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="http://vladmihalcea.com/xmlrpc.php">
+
+<meta name="google-site-verification" content="Pc6l9UZVISKXxNyFjUyuZCDBJ-zGY2rqozVYGbiC_l0">
+		<script src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/cb=gapi.loaded_1" async=""></script><script src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/cb=gapi.loaded_0" async=""></script><script type="text/javascript" async="" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/plusone.js" gapi_processed="true"></script><script id="facebook-jssdk" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/sdk.js"></script><script type="text/javascript" async="" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/wl"></script><script src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/remote-login.php" type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel="alternate" type="application/rss+xml" title="Vlad Mihalcea&#39;s Blog » Feed" href="http://vladmihalcea.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="Vlad Mihalcea&#39;s Blog » Comments Feed" href="http://vladmihalcea.com/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="Vlad Mihalcea&#39;s Blog » A beginner’s guide to ACID and database transactions Comments Feed" href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/feed/">
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel="stylesheet" id="all-css-0" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource" type="text/css" media="all">
+<link rel="stylesheet" id="wilson-raleway-css" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/css" type="text/css" media="all">
+<link rel="stylesheet" id="wilson-latos-css" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/css(1)" type="text/css" media="all">
+<link rel="stylesheet" id="all-css-4" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource(1)" type="text/css" media="all">
+<link rel="stylesheet" id="print-css-5" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/global-print.css" type="text/css" media="print">
+<link rel="stylesheet" id="all-css-6" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource(2)" type="text/css" media="all">
+<script type="text/javascript">
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"Your subscription did not succeed, please try again with a valid email address."};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource(3)"></script>
+<link rel="stylesheet" id="all-css-0" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/style.css" type="text/css" media="all">
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='https://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://vladmihalcea.wordpress.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="Asciidoctor for collaborative book writing" href="http://vladmihalcea.com/2014/01/03/asciidoctor-for-collaborative-book-writing/">
+<link rel="next" title="MongoDB time series: Introducing the aggregation framework" href="http://vladmihalcea.com/2014/01/10/mongodb-time-series-introducing-the-aggregation-framework/">
+<meta name="generator" content="WordPress.com">
+<link rel="canonical" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog.htm">
+<link rel="shortlink" href="http://wp.me/p3XJ2k-k9">
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&url=http%3A%2F%2Fvladmihalcea.com%2F2014%2F01%2F05%2Fa-beginners-guide-to-acid-and-database-transactions%2F&for=wpcom-auto-discovery"><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&url=http%3A%2F%2Fvladmihalcea.com%2F2014%2F01%2F05%2Fa-beginners-guide-to-acid-and-database-transactions%2F&for=wpcom-auto-discovery">
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="A beginner&#39;s guide to ACID and database transactions">
+<meta property="og:url" content="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/">
+<meta property="og:description" content="Transactions are omnipresent in today&#39;s enterprise systems, providing data integrity even in highly concurrent environments. So let&#39;s get started by first defining the term and the context where yo...">
+<meta property="article:published_time" content="2014-01-04T22:31:44+00:00">
+<meta property="article:modified_time" content="2014-02-26T21:51:20+00:00">
+<meta property="article:author" content="http://vladmihalcea.com/author/vladmihalcea/">
+<meta property="og:site_name" content="Vlad Mihalcea&#39;s Blog">
+<meta property="og:image" content="http://vladmihalcea.files.wordpress.com/2014/01/transaction-workflow1.gif?w=294">
+<meta property="og:image" content="http://vladmihalcea.files.wordpress.com/2014/01/acid-dirty-read.gif?w=300">
+<meta property="og:image" content="http://vladmihalcea.files.wordpress.com/2014/01/acid-non-repeatable-read.gif?w=300">
+<meta property="og:image" content="http://vladmihalcea.files.wordpress.com/2014/01/acid-phantom-read.gif?w=300">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:site" content="@vlad_mihalcea">
+<meta name="twitter:image" content="http://vladmihalcea.files.wordpress.com/2014/01/transaction-workflow1.gif?w=240">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@vlad_mihalcea">
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom">
+<link rel="shortcut icon" type="image/x-icon" href="http://0.gravatar.com/blavatar/89eaf6517ec100c497f0e93a4a3b4806?s=16" sizes="16x16">
+<link rel="icon" type="image/x-icon" href="http://0.gravatar.com/blavatar/89eaf6517ec100c497f0e93a4a3b4806?s=16" sizes="16x16">
+<link rel="apple-touch-icon-precomposed" href="http://1.gravatar.com/blavatar/379c30e6e981004ee182e3706373bfb3?s=114">
+<link rel="openid.server" href="http://vladmihalcea.wordpress.com/?openidserver=1">
+<link rel="openid.delegate" href="http://vladmihalcea.wordpress.com/">
+<link rel="search" type="application/opensearchdescription+xml" href="http://vladmihalcea.com/osd.xml" title="Vlad Mihalcea&#39;s Blog">
+<link rel="search" type="application/opensearchdescription+xml" href="https://wordpress.com/opensearch.xml" title="WordPress.com">
+<meta name="application-name" content="Vlad Mihalcea&#39;s Blog"><meta name="msapplication-window" content="width=device-width;height=device-height"><meta name="msapplication-tooltip" content="Teaching is my way of learning"><meta name="msapplication-task" content="name=Subscribe;action-uri=http://vladmihalcea.com/feed/;icon-uri=http://0.gravatar.com/blavatar/89eaf6517ec100c497f0e93a4a3b4806?s=16"><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico"><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico"><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico"><meta name="title" content="A beginner’s guide to ACID and database transactions | Vlad Mihalcea&#39;s Blog on WordPress.com">
+<meta name="description" content="Transactions are omnipresent in today&#39;s enterprise systems, providing data integrity even in highly concurrent environments. So let&#39;s get started by first defining the term and the context where you might usually employ it. A transaction is a collection of read/write operations succeeding only if all contained operations succeed. Inherently a transaction is characterized by four…">
+
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/google_service.js">
+</script>
+<script type="text/javascript">
+if ( typeof GS_googleAddAdSenseService == 'function' ) { GS_googleAddAdSenseService("ca-pub-3443918307802676"); }
+if ( typeof GS_googleEnableAllServices == 'function' ) { GS_googleEnableAllServices() };
+</script><script src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/google_ads.js"></script><script type="text/javascript">
+if ( typeof GA_googleAddSlot == 'function' ) { GA_googleAddSlot("ca-pub-3443918307802676", "wpcom_below_post"); }
+</script>
+<script type="text/javascript">
+if ( typeof GA_googleFetchAds == 'function' ) { GA_googleFetchAds(); }
+</script>
+
+<script type="text/javascript">
+var wpcom_ads = { bid: 58563484, pt: 'permalink', wa: 0, as: 0, domain: 'vladmihalcea.com', url: 'http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/', gid: '', };
+</script>
+<style type="text/css" id="syntaxhighlighteranchor"></style>
+<script type="text/javascript">
+	window.google_analytics_uacct = "UA-52447-2";
+</script>
+
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-52447-2']);
+	_gaq.push(['_setDomainName', 'none']);
+	_gaq.push(['_setAllowLinker', true]);
+	_gaq.push(['_initData']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+	})();
+</script><script type="text/javascript" async="" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/ga.js"></script>
+<link rel="stylesheet" type="text/css" id="gravatar-card-css" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/hovercard.css"><link rel="stylesheet" type="text/css" id="gravatar-card-services-css" href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/services.css"><script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/osd.js"></script><script type="text/javascript" async="" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource(4)"></script><style type="text/css">.fb_hidden{position:absolute;top:-10000px;z-index:10001}.fb_invisible{display:none}.fb_reset{background:none;border:0;border-spacing:0;color:#000;cursor:auto;direction:ltr;font-family:"lucida grande", tahoma, verdana, arial, sans-serif;font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;letter-spacing:normal;line-height:1;margin:0;overflow:visible;padding:0;text-align:left;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal}.fb_reset>div{overflow:hidden}.fb_link img{border:none}
+.fb_dialog{background:rgba(82, 82, 82, .7);position:absolute;top:-10000px;z-index:10001}.fb_reset .fb_dialog_legacy{overflow:visible}.fb_dialog_advanced{padding:10px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px}.fb_dialog_content{background:#fff;color:#333}.fb_dialog_close_icon{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 0 transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif);cursor:pointer;display:block;height:15px;position:absolute;right:18px;top:17px;width:15px}.fb_dialog_mobile .fb_dialog_close_icon{top:5px;left:5px;right:auto}.fb_dialog_padding{background-color:transparent;position:absolute;width:1px;z-index:-1}.fb_dialog_close_icon:hover{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -15px transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif)}.fb_dialog_close_icon:active{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -30px transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif)}.fb_dialog_loader{background-color:#f6f7f8;border:1px solid #606060;font-size:24px;padding:20px}.fb_dialog_top_left,.fb_dialog_top_right,.fb_dialog_bottom_left,.fb_dialog_bottom_right{height:10px;width:10px;overflow:hidden;position:absolute}.fb_dialog_top_left{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 0;left:-10px;top:-10px}.fb_dialog_top_right{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -10px;right:-10px;top:-10px}.fb_dialog_bottom_left{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -20px;bottom:-10px;left:-10px}.fb_dialog_bottom_right{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -30px;right:-10px;bottom:-10px}.fb_dialog_vert_left,.fb_dialog_vert_right,.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{position:absolute;background:#525252;filter:alpha(opacity=70);opacity:.7}.fb_dialog_vert_left,.fb_dialog_vert_right{width:10px;height:100%}.fb_dialog_vert_left{margin-left:-10px}.fb_dialog_vert_right{right:0;margin-right:-10px}.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{width:100%;height:10px}.fb_dialog_horiz_top{margin-top:-10px}.fb_dialog_horiz_bottom{bottom:0;margin-bottom:-10px}.fb_dialog_iframe{line-height:0}.fb_dialog_content .dialog_title{background:#6d84b4;border:1px solid #3a5795;color:#fff;font-size:14px;font-weight:bold;margin:0}.fb_dialog_content .dialog_title>span{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yd/r/Cou7n-nqK52.gif) no-repeat 5px 50%;float:left;padding:5px 0 7px 26px}body.fb_hidden{-webkit-transform:none;height:100%;margin:0;overflow:visible;position:absolute;top:-10000px;left:0;width:100%}.fb_dialog.fb_dialog_mobile.loading{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ya/r/3rhSv5V8j3o.gif) white no-repeat 50% 50%;min-height:100%;min-width:100%;overflow:hidden;position:absolute;top:0;z-index:10001}.fb_dialog.fb_dialog_mobile.loading.centered{max-height:590px;min-height:590px;max-width:500px;min-width:500px}#fb-root #fb_dialog_ipad_overlay{background:rgba(0, 0, 0, .45);position:absolute;left:0;top:0;width:100%;min-height:100%;z-index:10000}#fb-root #fb_dialog_ipad_overlay.hidden{display:none}.fb_dialog.fb_dialog_mobile.loading iframe{visibility:hidden}.fb_dialog_content .dialog_header{-webkit-box-shadow:white 0 1px 1px -1px inset;background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#738ABA), to(#2C4987));border-bottom:1px solid;border-color:#1d4088;color:#fff;font:14px Helvetica, sans-serif;font-weight:bold;text-overflow:ellipsis;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0;vertical-align:middle;white-space:nowrap}.fb_dialog_content .dialog_header table{-webkit-font-smoothing:subpixel-antialiased;height:43px;width:100%}.fb_dialog_content .dialog_header td.header_left{font-size:12px;padding-left:5px;vertical-align:middle;width:60px}.fb_dialog_content .dialog_header td.header_right{font-size:12px;padding-right:5px;vertical-align:middle;width:60px}.fb_dialog_content .touchable_button{background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#4966A6), color-stop(.5, #355492), to(#2A4887));border:1px solid #2f477a;-webkit-background-clip:padding-box;-webkit-border-radius:3px;-webkit-box-shadow:rgba(0, 0, 0, .117188) 0 1px 1px inset, rgba(255, 255, 255, .167969) 0 1px 0;display:inline-block;margin-top:3px;max-width:85px;line-height:18px;padding:4px 12px;position:relative}.fb_dialog_content .dialog_header .touchable_button input{border:none;background:none;color:#fff;font:12px Helvetica, sans-serif;font-weight:bold;margin:2px -12px;padding:2px 6px 3px 6px;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog_content .dialog_header .header_center{color:#fff;font-size:16px;font-weight:bold;line-height:18px;text-align:center;vertical-align:middle}.fb_dialog_content .dialog_content{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/y9/r/jKEcVPZFk-2.gif) no-repeat 50% 50%;border:1px solid #555;border-bottom:0;border-top:0;height:150px}.fb_dialog_content .dialog_footer{background:#f6f7f8;border:1px solid #555;border-top-color:#ccc;height:40px}#fb_dialog_loader_close{float:left}.fb_dialog.fb_dialog_mobile .fb_dialog_close_button{text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog.fb_dialog_mobile .fb_dialog_close_icon{visibility:hidden}
+.fb_iframe_widget{display:inline-block;position:relative}.fb_iframe_widget span{display:inline-block;position:relative;text-align:justify}.fb_iframe_widget iframe{position:absolute}.fb_iframe_widget_fluid_desktop,.fb_iframe_widget_fluid_desktop span,.fb_iframe_widget_fluid_desktop iframe{max-width:100%}.fb_iframe_widget_fluid_desktop iframe{min-width:220px;position:relative}.fb_iframe_widget_lift{z-index:1}.fb_hide_iframes iframe{position:relative;left:-10000px}.fb_iframe_widget_loader{position:relative;display:inline-block}.fb_iframe_widget_fluid{display:inline}.fb_iframe_widget_fluid span{width:100%}.fb_iframe_widget_loader iframe{min-height:32px;z-index:2;zoom:1}.fb_iframe_widget_loader .FB_Loader{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/y9/r/jKEcVPZFk-2.gif) no-repeat;height:32px;width:32px;margin-left:-16px;position:absolute;left:50%;z-index:4}</style></head>
+
+<body class="single single-post postid-1249 single-format-standard mp6 customizer-styles-applied individual-blog highlander-enabled highlander-light tablet-desktop">
+<div id="page" class="hfeed site">
+
+	<a class="skip-link screen-reader-text" href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#content" sl-processed="1">Skip to content</a>
+	<header id="masthead" class="site-header" role="banner">
+		<div class="site-branding">
+													<h1 class="site-title"><a href="http://vladmihalcea.com/" rel="home" sl-processed="1">Vlad Mihalcea's Blog</a></h1>
+			<h2 class="site-description">Teaching is my way of learning</h2>
+		</div>
+
+		<nav id="site-navigation" class="main-navigation" role="navigation">
+			<h1><span class="screen-reader-text">Primary Menu</span></h1>
+			<button class="menu-toggle"><span class="genericon genericon-menu"></span><span class="screen-reader-text">Menu</span></button>
+
+			<div class="menu-primary-container"><ul id="menu-primary" class="menu nav-menu"><li id="menu-item-2075" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-2075"><a href="http://vladmihalcea.com/" sl-processed="1">Home</a></li>
+<li id="menu-item-2078" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2078"><a href="http://vladmihalcea.com/tutorials/" sl-processed="1">Tutorials</a>
+<ul class="sub-menu">
+	<li id="menu-item-2869" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2869"><a href="http://vladmihalcea.com/tutorials/hibernate/" sl-processed="1">Hibernate</a></li>
+	<li id="menu-item-4308" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4308"><a href="http://vladmihalcea.com/tutorials/mongodb/" sl-processed="1">MongoDB</a></li>
+	<li id="menu-item-4394" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4394"><a href="http://vladmihalcea.com/tutorials/spring/" sl-processed="1">Spring</a></li>
+	<li id="menu-item-2079" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2079"><a href="http://vladmihalcea.com/tutorials/git/" sl-processed="1">Git</a></li>
+</ul>
+</li>
+<li id="menu-item-2076" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2076"><a href="http://vladmihalcea.com/about/" sl-processed="1">About</a></li>
+</ul></div>		</nav><!-- #site-navigation -->
+	</header><!-- #masthead -->
+
+	<div id="content" class="site-content">
+
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+		
+			
+<article id="post-1249" class="post-1249 post type-post status-publish format-standard hentry category-transactions tag-acid tag-database tag-isolation-levels tag-transactions-2">
+	<header class="entry-header">
+					<h1 class="entry-title">A beginner’s guide to ACID and database&nbsp;transactions</h1>				<div class="entry-meta">
+			<span class="posted-on"><a href="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog.htm" rel="bookmark" sl-processed="1"><time class="entry-date published" datetime="2014-01-05T00:31:44+00:00">January 5, 2014</time><time class="updated" datetime="2014-02-26T23:51:20+00:00">February 26, 2014</time></a></span><span class="byline"><span class="author vcard"><a class="url fn n" href="http://vladmihalcea.com/author/vladmihalcea/" sl-processed="1">vladmihalcea</a></span></span>					</div><!-- .entry-meta -->
+	</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Transactions are omnipresent in today’s enterprise systems, providing data integrity even in highly concurrent environments. So let’s get started by first defining the term and the context where you might usually employ it.</p>
+<p>A transaction is a collection of read/write operations succeeding only if all contained operations succeed.</p>
+<p><a href="http://vladmihalcea.files.wordpress.com/2014/01/transaction-workflow1.gif" sl-processed="1"><img class="alignnone size-medium wp-image-1256" alt="Transaction-workflow" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/transaction-workflow1.gif" width="294" height="300"></a></p>
+<p>Inherently a transaction is characterized by four properties (commonly referred as ACID) :</p>
+<ol>
+<li>Atomicity</li>
+<li>Consistency</li>
+<li>Isolation</li>
+<li>Durability</li>
+</ol>
+<p>It’s very important to understand those, hence we will discuss each and every one of them as follows.</p>
+<p>1. Atomicity takes individual operations and turns them into an all-or-nothing unit of work, succeeding if and only if all contained operations succeed.</p>
+<p>2. A transaction might encapsulates a state change (unless it is a read-only one). A transaction must always leave the system in a consistent state, no matter how many concurrent transactions are inter-leaved at any given time.</p>
+<p>Consistency has the following characteristics:</p>
+<ul>
+<li>if one operation triggers secondary actions (CASCADE, TRIGGERS), those must also succeed otherwise the transaction fails .</li>
+<li>if the system is composed of multiple nodes, then consistency mandates that all changes be propagated to all nodes (<a href="http://en.wikipedia.org/wiki/Multi-master_replication" sl-processed="1">multi-master replication</a>). If slaves nodes are updated asynchronously then we break the consistency rule, the system becoming “<a href="http://en.wikipedia.org/wiki/Eventual_consistency" sl-processed="1">eventually consistent</a>“.</li>
+<li>a transaction is a data state transition, so the system must operate as if all transactions occur in a serial form even if those are concurrently executed.</li>
+</ul>
+<p>If there would be only one connection running at all times, then serializability wouldn’t impose any concurrency control cost. In reality, all transactional systems must accommodate concurrent requests, hence serialization has its toll on scalability. The <a href="http://en.wikipedia.org/wiki/Amdahl%27s_law" sl-processed="1">Amdahl’s law</a> describes the relation between serial execution and concurrency:</p>
+<blockquote><p>“The speed up of a program using multiple processors in parallel computing is limited by the time needed for the sequential fraction of the program.”</p></blockquote>
+<p>As you’ll see later, most database management systems choose (by default) to relax consistency to achieve better concurrency.</p>
+<p>3. Isolation</p>
+<p>Transactions are concurrency control mechanisms, and they deliver consistency even when being interleaved. Isolation brings us the benefit of hiding uncommitted state changes from the outside world, as failing transactions shouldn’t ever corrupt the state of the system. Isolation is achieved through <a href="http://en.wikipedia.org/wiki/Concurrency_control" sl-processed="1">concurrency control</a> using pessimistic or optimistic locking mechanisms. </p>
+<p>4. Durability</p>
+<p>A successful transaction must permanently change the state of a system, and before ending it, the state changes are recorded in a persisted <a href="http://en.wikipedia.org/wiki/Transaction_log" sl-processed="1">transaction log</a>. If our system is suddenly affected by a system crash or a power outage, then all unfinished committed transactions may be replayed.</p>
+<p>For messaging systems like <a href="http://en.wikipedia.org/wiki/Java_Message_Service" sl-processed="1">JMS</a>, transactions are not mandatory. That’s why we have non-transacted&nbsp;<a href="http://docs.oracle.com/javaee/6/api/javax/jms/Session.html" sl-processed="1">acknowledgement modes</a>.</p>
+<p>File system operations are usually non-managed, but if your business requirements demand transaction file operations, you might make use a tool such as <a href="https://xadisk.java.net/" sl-processed="1">XADisk</a>.</p>
+<p>While, messaging and file systems use transactions optionally, for database management systems transactions are compulsory. That’s the reason database connections define a default <a href="http://en.wikipedia.org/wiki/Autocommit" sl-processed="1">autocommit</a> mode. ACID is mandated by the SQL Standard, hence all operations must be embedded in a database transaction. But for an enterprise application, the autocommit mode is something you’d generally avoid, since it performs badly and it doesn’t allow you to include multiple <a href="http://en.wikipedia.org/wiki/Data_manipulation_language" sl-processed="1">DML</a> operations in a single atomic unit of work.</p>
+<p>ACID is old school. <a href="http://research.microsoft.com/en-us/um/people/gray/papers/theTransactionConcept.pdf" sl-processed="1">Jim Gray</a> described atomicity, consistency and durability long before I was even born. But that particular paper doesn’t mention anything about isolation. This is understandable, if we think of the production systems of the late 70’s, which according to Jim Gray:</p>
+<blockquote><p>“At present, the largest airlines and banks have about 10,000 terminals and about 100 active transactions at any instant”.</p></blockquote>
+<p>So all efforts were spent for delivering consistency rather than concurrency. Things have changed drastically ever since, and nowadays even modest set-ups are able to run 1000 TPS.</p>
+<p>From a database perspective, the atomicity is a fixed property, but everything else may be traded-off for performance/scalability reasons.</p>
+<p>Playing with durability makes sense for <a href="http://wiki.postgresql.org/images/3/3b/2011-11-11_PostgreSQL_SyncRepPerformance.pdf" sl-processed="1">highly performing clustered databases </a>if the enterprise system business requirements don’t mandate durable transactions. But, most often durability is better off untouched.</p>
+<p>Although some database management systems offer <a href="http://en.wikipedia.org/wiki/Multiversion_concurrency_control" sl-processed="1">MVCC</a>, usually concurrency control is achieved through locking. But as we all know, locking increases the serializable portion of the executed code, affecting <a href="http://en.wikipedia.org/wiki/Amdahl%27s_law#Parallelization" sl-processed="1">parallelization</a>.</p>
+<p>The SQL standard defines four Isolation levels:</p>
+<ul>
+<li>READ_UNCOMMITTED</li>
+<li>READ_COMMITTED</li>
+<li>REPEATABLE_READ</li>
+<li>SERIALIZABLE</li>
+</ul>
+<p>All but the SERIALIZABLE level are subject to data anomalies (phenomena) that might occur according to the following pattern:</p>
+<table>
+<tbody><tr>
+<th>Isolation Level</th>
+<th>Dirty read</th>
+<th>Non-repeatable read</th>
+<th>Phantom read</th>
+</tr>
+<tr>
+<td>READ_UNCOMMITTED</td>
+<td>allowed</td>
+<td>allowed</td>
+<td>allowed</td>
+</tr>
+<tr>
+<td>READ_COMMITTED</td>
+<td>prevented</td>
+<td>allowed</td>
+<td>allowed</td>
+</tr>
+<tr>
+<td>REPEATABLE_READ</td>
+<td>prevented</td>
+<td>prevented</td>
+<td>allowed</td>
+</tr>
+<tr>
+<td>SERIALIZABLE</td>
+<td>prevented</td>
+<td>prevented</td>
+<td>prevented</td>
+</tr>
+</tbody></table>
+<p>But what are all those phenomena we’d just listed. Let’s discuss each and every one of them.</p>
+<p>1. Dirty read</p>
+<p><a href="http://vladmihalcea.files.wordpress.com/2014/01/acid-dirty-read.gif" sl-processed="1"><img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/acid-dirty-read.gif" alt="ACID-dirty-read" width="300" height="284" class="alignnone size-medium wp-image-1265"></a></p>
+<p>A dirty read happens when a transaction is allowed to read uncommitted changes of some other running transaction. This happens because there is no locking preventing it. In the picture above, you can see that the second transaction uses an inconsistent value as of the first transaction had rollbacked.</p>
+<p>2. Non-repeatable read</p>
+<p><a href="http://vladmihalcea.files.wordpress.com/2014/01/acid-non-repeatable-read.gif" sl-processed="1"><img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/acid-non-repeatable-read.gif" alt="ACID-non-repeatable-read" width="300" height="273" class="alignnone size-medium wp-image-1799"></a></p>
+<p>A non-repeatable read manifests when consecutive reads yield different results due to a concurring transaction that has just updated the record we’re reading. This is undesirable since we end up using stale data. This is prevented by holding a shared lock (read lock) on the read record for the whole duration of the current transaction. </p>
+<p>3. Phantom read</p>
+<p><a href="http://vladmihalcea.files.wordpress.com/2014/01/acid-phantom-read.gif" sl-processed="1"><img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/acid-phantom-read.gif" alt="ACID-phantom-read" width="300" height="285" class="alignnone size-medium wp-image-1267"></a></p>
+<p>A phantom read happens when a second transaction inserts a row that matches a previously select criteria of the first transaction. We therefore end up using stale data, which might affect our business operation. This is prevented using range locks or <a href="http://research.microsoft.com/en-us/um/people/gray/papers/On%20the%20Notions%20of%20Consistency%20and%20Predicate%20Locks%20in%20a%20Database%20System%20CACM.pdf" sl-processed="1">predicate locking</a>.</p>
+<p>Even if the SOL standard mandates the use of the SERIALIZABLE isolation level, most database management system use a different default level.</p>
+<table>
+<tbody><tr>
+<th>Database</th>
+<th>Default isolation Level</th>
+</tr>
+<tr>
+<td>Oracle</td>
+<td>READ_COMMITTED</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>REPEATABLE_READ</td>
+</tr>
+<tr>
+<td>Microsoft SQL Server</td>
+<td>READ_COMMITTED</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>READ_COMMITTED</td>
+</tr>
+<tr>
+<td>DB2</td>
+<td>CURSOR STABILITY (a.k.a READ_COMMITTED)</td>
+</tr>
+</tbody></table>
+<p>Usually, READ_COMMITED is the right choice, since not even SERIALIZABLE can protect you from a “lost update” where the read/write happen in different transactions (and web requests). You should take into consideration your enterprise system requirements and set up tests for deciding which isolation level best suits your needs.</p>
+<p>If you are interested in learning more about Transactions you can follow me on my blog, or on <a href="https://twitter.com/vlad_mihalcea" sl-processed="1">twitter</a> since all this material will hopefully materialize in my <a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/2014/01/01/my-open-book-movement/" sl-processed="1">open-source book</a>.</p>
+<p><strong>If you have enjoyed reading my article and you’re looking forward to getting instant email notifications of my latest posts, you just need to <a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/follow-me/" sl-processed="1">follow my blog</a>.</strong></p>
+
+<div class="wpcnt">
+<div class="wpa">
+<a class="wpa-about" href="http://wordpress.com/about-these-ads/" rel="nofollow" sl-processed="1">About these ads</a>
+<script type="text/javascript">
+		var wpcom_adclk_hovering = false;
+		var wpcom_adclk_recorded = false;
+		var wpcom_adclk_theme = "Wilson";
+		var wpcom_adclk_slot = "wpcom_below_post";
+		var wpcom_adclk_network = ( typeof wpcom_adclk_network === "undefined" ) ? "" : wpcom_adclk_network ;
+
+		jQuery(document).ready( function() {
+			function wpcom_adclk_hover_yes() { wpcom_adclk_hovering = true; }
+			function wpcom_adclk_hover_no() { wpcom_adclk_hovering = false; }
+			jQuery(".wpa").click(wpcom_adclk_click);
+			jQuery(".wpa iframe").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+			jQuery(".wpa object").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+
+			jQuery(window).blur( function() {
+				if ( wpcom_adclk_hovering ) { wpcom_adclk_click(); }
+			});
+		});
+
+		function wpcom_adclk_impression() {
+			var stat_gif = document.location.protocol + "//pixel.wp.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_imp_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_imp_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_imp_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_imp_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			return true;
+		}
+
+		function wpcom_adclk_click() {
+			if (wpcom_adclk_recorded) { return true; } // no double counting
+			var stat_gif = document.location.protocol + "//pixel.wp.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_click_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_click_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_click_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_click_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			wpcom_adclk_recorded = true;
+			var now=new Date(); var end=now.getTime()+250;
+			while(true){now=new Date();if(now.getTime()>end){break;}}
+			return true;
+		}
+	
+if ( typeof GA_googleAddAttr == 'function' ) {
+GA_googleAddAttr("AdOpt", "1");
+GA_googleAddAttr("Origin", "other");
+GA_googleAddAttr("LangId", "1");
+GA_googleAddAttr("Domain", "vladmihalcea.com");
+GA_googleAddAttr("BlogId", "58563484");
+GA_googleAddAttr("PageURL", "http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/");
+GA_googleAddAttr("Autotag", "business");
+GA_googleAddAttr("Tag", "transactions");
+GA_googleAddAttr("Tag", "acid");
+GA_googleAddAttr("Tag", "database");
+GA_googleAddAttr("Tag", "isolation-levels");
+GA_googleAddAttr("Tag", "transactions-2");
+GA_googleAddAttr("theme_bg", "ffffff");
+GA_googleAddAttr("theme_border", "eeeeee");
+GA_googleAddAttr("theme_text", "555555");
+GA_googleAddAttr("theme_link", "ff706c");
+GA_googleAddAttr("theme_url", "ff706c");
+GA_googleAddAdSensePageAttr("google_page_url", "http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/");
+GA_googleFillSlot("wpcom_below_post");
+}
+</script><script src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/ads"></script><div id="google_ads_div_wpcom_below_post_ad_wrapper">
+<div id="google_ads_div_wpcom_below_post_ad_container" style="display:inline-block;"><div id="grv-personalization-16" style="width: 300px; height: 250px; overflow: hidden; position: absolute; top: -10000px; left: -10000px;"><iframe frameborder="0" scrolling="no" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/w2.htm" style="overflow: hidden; width: 300px; height: 250px;"></iframe></div>
+<script type="text/javascript">
+  //<![CDATA[
+ function _grc(k){return(document.cookie.match('(^|; )'+k+'=([^;]*)')||0)[2]}
+    (function(){
+    window.gravityInsightsParams = {
+      'type': 'content',
+      'site_guid': '361837bc83c4c2cba7b350dff56a564f',
+      'user_guid': _grc('grvinsights'),
+      'sourceUrl': 'vladmihalcea.com',
+    };
+    var b,c,d,e,f,g,h,i;f=(b=!0===gravityInsightsParams.useGravityUserGuid?1:0,e=b?"":gravityInsightsParams.user_guid||(null!=(g=/grvinsights=([^;]+)/.exec(document.cookie))?g[1]:void 0)||"",c=(null!=(h=window.jQuery)?null!=(i=h.fn)?i.jquery:void 0:void 0)||"","http://rma-api.gravity.com/v1/api/intelligence/wl?jq="+c+"&sg="+gravityInsightsParams.site_guid+"&ug="+e+"&ugug="+b+"&pl=16&id=grv-personalization-16&type=iframe");
+    window.grvMakeScript=function(j){var a;a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src=j;return a};d=document.getElementsByTagName("script")[0];f&&d.parentNode.insertBefore(window.grvMakeScript(f),d);})();
+  //]]>
+</script>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<script type="text/javascript">
+jQuery( window ).load( function() {
+    if ( jQuery(".wpa script[src*='virool.com']").length > 0 || jQuery(".wpa script[src*='shareth.ru']").length > 0 || jQuery(".wpa iframe[src*='boomvideo.tv']").length > 0 || jQuery(".wpa iframe[src*='viewablemedia.net']").length > 0 || jQuery(".wpa .sharethrough-placement").length > 0 ) {
+        jQuery( '.wpa' ).css( 'width', '400px' );
+    }
+setTimeout(function(){if(typeof GS_googleAddAdSenseService !== 'function'){new Image().src=document.location.protocol+"//pixel.wp.com/g.gif?v=wpcom-no-pv&x_noads=adblock&baba="+Math.random()}},100);
+} );
+</script>
+
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-official sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-facebook"><div class="fb-share-button fb_iframe_widget" data-href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/" data-layout="button_count" fb-xfbml-state="rendered" fb-iframe-plugin-query="app_id=249643311490&amp;container_width=0&amp;href=http%3A%2F%2Fvladmihalcea.com%2F2014%2F01%2F05%2Fa-beginners-guide-to-acid-and-database-transactions%2F&amp;layout=button_count&amp;locale=en_US&amp;sdk=joey"><span style="vertical-align: bottom; width: 86px; height: 20px;"><iframe name="f2b517d04" width="1000px" height="1000px" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" title="fb:share_button Facebook Social Plugin" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/share_button.htm" class="" style="border: none; visibility: visible; width: 86px; height: 20px;"></iframe></span></div></li><li class="share-google-plus-1"><div class="googleplus1_button"><div id="___plus_0" style="text-indent: 0px; margin: 0px; padding: 0px; background-color: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 88px; height: 20px; background-position: initial initial; background-repeat: initial initial;"><iframe frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 88px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I0_1431843086321" name="I0_1431843086321" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/sharebutton.htm" data-gapiattached="true" title="+Share"></iframe></div></div></li><li class="share-twitter"><div class="twitter_button"><iframe allowtransparency="true" frameborder="0" scrolling="no" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/tweet_button.htm" style="width:101px; height:20px;"></iframe></div></li><li class="share-reddit"><div class="reddit_button"><iframe src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/button1.htm" height="22" width="120" scrolling="no" frameborder="0"></iframe></div></li><li class="share-end"></li></ul></div></div></div><div class="sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-loaded" id="like-post-wrapper-58563484-1249-55583105b1d8b" data-src="//widgets.wp.com/likes/#blog_id=58563484&amp;post_id=1249&amp;origin=vladmihalcea.wordpress.com&amp;obj_id=58563484-1249-55583105b1d8b" data-name="like-post-frame-58563484-1249-55583105b1d8b"><h3 class="sd-title">Like this:</h3><div class="likes-widget-placeholder post-likes-widget-placeholder" style="height: 55px; display: none;"><span class="button"><span>Like</span></span> <span class="loading">Loading...</span></div><iframe class="post-likes-widget jetpack-likes-widget" name="like-post-frame-58563484-1249-55583105b1d8b" height="55px" width="100%" frameborder="0" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource.htm"></iframe><span class="sd-text-color"></span><a class="sd-link-color"></a></div>
+<div id="jp-relatedposts" class="jp-relatedposts" style="display: block;">
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+<div class="jp-relatedposts-items jp-relatedposts-items-minimal"><p class="jp-relatedposts-post jp-relatedposts-post0" data-post-id="3588" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://vladmihalcea.com/2014/12/23/a-beginners-guide-to-transaction-isolation-levels-in-enterprise-java/" title="A beginner&#39;s guide to transaction isolation levels in enterprise Java
+
+Introduction A relational database strong consistency model is based on ACID transaction properties. In this post we are going to unravel the reasons behind using different transaction isolation levels and various configuration patterns for both resource local and JTA transactions. Isolation and consistency In a relational database system, atomicity and…" rel="nofollow" data-origin="1249" data-position="0" sl-processed="1">A beginner's guide to transaction isolation levels in enterprise Java</a></span><span class="jp-relatedposts-post-context">In "Hibernate"</span></p><p class="jp-relatedposts-post jp-relatedposts-post1" data-post-id="3076" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/" title="A beginner&#39;s guide to database locking and the lost update phenomena
+
+Introduction A database is highly concurrent system. There&#39;s always a chance of update conflicts, like when two concurring transactions try to update the same record. If there would be only one database transaction at any time then all operations would be executed sequentially. The challenge comes when multiple transactions try…" rel="nofollow" data-origin="1249" data-position="1" sl-processed="1">A beginner's guide to database locking and the lost update phenomena</a></span><span class="jp-relatedposts-post-context">In "Hibernate"</span></p><p class="jp-relatedposts-post jp-relatedposts-post2" data-post-id="3142" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://vladmihalcea.com/2014/09/22/preventing-lost-updates-in-long-conversations/" title="Preventing lost updates in long conversations
+
+Introduction All database statements are executed within the context of a physical transaction, even when we don&#39;t explicitly declare transaction boundaries (BEGIN/COMMIT/ROLLBACK). Data integrity is enforced by the ACID properties of database transactions. Logical vs Physical transactions An logical transaction is an application-level unit of work that may span over…" rel="nofollow" data-origin="1249" data-position="2" sl-processed="1">Preventing lost updates in long conversations</a></span><span class="jp-relatedposts-post-context">In "Hibernate"</span></p></div></div></div>			</div><!-- .entry-content -->
+
+	<footer class="entry-footer">
+				<span class="cat-links">
+			Categories: <a href="http://vladmihalcea.com/category/transactions/" rel="category tag" sl-processed="1">Transactions</a>		</span>
+		
+				<span class="tag-links">
+			Tags: <a href="http://vladmihalcea.com/tag/acid/" rel="tag" sl-processed="1">ACID</a>, <a href="http://vladmihalcea.com/tag/database/" rel="tag" sl-processed="1">database</a>, <a href="http://vladmihalcea.com/tag/isolation-levels/" rel="tag" sl-processed="1">isolation levels</a>, <a href="http://vladmihalcea.com/tag/transactions-2/" rel="tag" sl-processed="1">transactions</a>		</span>
+			</footer><!-- .entry-footer -->
+</article><!-- #post-## -->
+
+				<nav class="navigation post-navigation" role="navigation">
+		<h1 class="screen-reader-text">Post navigation</h1>
+		<div class="nav-links">
+			<div class="nav-previous"><a href="http://vladmihalcea.com/2014/01/03/asciidoctor-for-collaborative-book-writing/" rel="prev" sl-processed="1"><span class="meta-nav">←</span> Asciidoctor for collaborative book&nbsp;writing</a></div><div class="nav-next"><a href="http://vladmihalcea.com/2014/01/10/mongodb-time-series-introducing-the-aggregation-framework/" rel="next" sl-processed="1">MongoDB time series: Introducing the aggregation&nbsp;framework <span class="meta-nav">→</span></a></div>		</div><!-- .nav-links -->
+	</nav><!-- .navigation -->
+	
+			
+<div id="comments" class="comments-area">
+
+	
+			<h2 class="comments-title">
+			2 thoughts on “<span>A beginner’s guide to ACID and database&nbsp;transactions</span>”		</h2>
+
+		
+		<ol class="comment-list">
+					<li id="comment-190" class="comment even thread-even depth-1 parent highlander-comment">
+			<article id="div-comment-190" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/photo.jpg" class="avatar avatar-50" height="50" width="50">						<b class="fn"><a href="https://plus.google.com/115634377755905887890" rel="external nofollow" class="url" sl-processed="1">Ryan Nideffer</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/comment-page-1/#comment-190" sl-processed="1">
+							<time datetime="2014-02-26T23:06:43+00:00">
+								February 26, 2014 at 11:06 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Awesome article, but this is driving me nuts: its REPEATABLE, not REPETABLE.</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a class="comment-reply-link" href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/?replytocom=190#respond" onclick="return addComment.moveForm( &quot;div-comment-190&quot;, &quot;190&quot;, &quot;respond&quot;, &quot;1249&quot; )" aria-label="Reply to Ryan Nideffer" sl-processed="1">Reply</a></div>			</article><!-- .comment-body -->
+<ol class="children">
+		<li id="comment-191" class="comment byuser comment-author-vladmihalcea comment-author-is-site-member bypostauthor odd alt depth-2 highlander-comment">
+			<article id="div-comment-191" class="comment-body">
+				<footer class="comment-meta">
+					<div class="comment-author vcard">
+						<img alt="" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/8467574e717b39cc53fbecb4fa3564c2" class="avatar avatar-50 grav-hashed grav-hijack" height="50" width="50" id="grav-8467574e717b39cc53fbecb4fa3564c2-0">						<b class="fn"><a href="http://vladmihalcea.com/" rel="external nofollow" class="url" sl-processed="1">vladmihalcea</a></b> <span class="says">says:</span>					</div><!-- .comment-author -->
+
+					<div class="comment-metadata">
+						<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/comment-page-1/#comment-191" sl-processed="1">
+							<time datetime="2014-02-26T23:52:31+00:00">
+								February 26, 2014 at 11:52 pm							</time>
+						</a>
+											</div><!-- .comment-metadata -->
+
+									</footer><!-- .comment-meta -->
+
+				<div class="comment-content">
+					<p>Thanks for pointing it out, I made the correction. Too much french lately…</p>
+				</div><!-- .comment-content -->
+
+				<div class="reply"><a class="comment-reply-link" href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/?replytocom=191#respond" onclick="return addComment.moveForm( &quot;div-comment-191&quot;, &quot;191&quot;, &quot;respond&quot;, &quot;1249&quot; )" aria-label="Reply to vladmihalcea" sl-processed="1">Reply</a></div>			</article><!-- .comment-body -->
+</li><!-- #comment-## -->
+</ol><!-- .children -->
+</li><!-- #comment-## -->
+		</ol><!-- .comment-list -->
+
+		
+	
+	
+							<div id="respond" class="comment-respond js">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#respond" style="display:none;" sl-processed="1">Cancel reply</a></small></h3>
+									<form action="http://vladmihalcea.com/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate="">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="5adf2e747a"><input type="hidden" name="_wp_http_referer" value="/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/">
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest">
+
+<div class="comment-form-field comment-textarea">
+	
+	<div id="comment-form-comment"><textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; -webkit-transition: none; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arial, Helvetica, Tahoma, Verdana, sans-serif; font-size: 14px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; text-decoration: none; word-spacing: 0px; text-indent: 0px; line-height: normal; width: 638.703125px;" class="autosizejs "></textarea><textarea id="comment" name="comment" title="Enter your comment here..." placeholder="Enter your comment here..." style="height: 36px; overflow: hidden; word-wrap: break-word; resize: none;"></textarea></div>
+</div>
+
+<div id="comment-form-identity" style="display: none;">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#comment-form-guest" id="postas-guest" title="Guest" sl-processed="1">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com" sl-processed="1">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter" sl-processed="1">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook" sl-processed="1">
+					<span></span>
+				</a>
+			</li>
+			<li>
+		</li></ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank" sl-processed="1">				<img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Gravatar" width="25" class="no-grav">
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value=""></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value=""></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value=""></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/wplogo.png" alt="WordPress.com Logo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="">
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="">
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="">
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your <span class="skimlinks-unlinked">WordPress.com</span> account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );" sl-processed="1">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#" onclick="javascript:HighlanderComments.switchAccount();return false;" sl-processed="1">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Twitter picture" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="">
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="">
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="">
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );" sl-processed="1">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#" onclick="javascript:HighlanderComments.switchAccount();return false;" sl-processed="1">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Facebook photo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="">
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="">
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="">
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );" sl-processed="1">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#" onclick="javascript:HighlanderComments.switchAccount();return false;" sl-processed="1">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Google+ photo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="">
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="">
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="">
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );" sl-processed="1">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/#" onclick="javascript:HighlanderComments.switchAccount();return false;" sl-processed="1">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();" sl-processed="1">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe" style="display: none;">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;" tabindex="7"> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog" style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+						
+						<p class="form-submit" style="display: none;"><input name="submit" type="submit" id="comment-submit" class="submit" value="Post Comment"> <input type="hidden" name="comment_post_ID" value="1249" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="3919b9a216"></p>
+<input type="hidden" name="genseq" value="1431843077">
+<p style="display: none;"></p>					<input type="hidden" id="ak_js" name="ak_js" value="1431843086003"></form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+</div><!-- #comments -->
+
+		
+		</main><!-- #main -->
+	</div><!-- #primary -->
+
+	<div id="secondary" class="widget-area" role="complementary">
+					<div class="social-links"><ul id="menu-social" class="menu"><li id="menu-item-4048" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4048"><a href="https://twitter.com/vlad_mihalcea" sl-processed="1"><span class="screen-reader-text">Twitter</span></a></li>
+<li id="menu-item-4049" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4049"><a href="https://github.com/vladmihalcea/" sl-processed="1"><span class="screen-reader-text">GitHub</span></a></li>
+<li id="menu-item-4051" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4051"><a href="https://www.linkedin.com/pub/vlad-mihalcea/20/a59/580" sl-processed="1"><span class="screen-reader-text">LinkedIn</span></a></li>
+<li id="menu-item-4050" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4050"><a href="https://plus.google.com/u/0/102351970868518518557" sl-processed="1"><span class="screen-reader-text">Google Plus</span></a></li>
+</ul></div>		
+					<aside id="text-3" class="widget widget_text"><h1 class="widget-title">Newsletter</h1>			<div class="textwidget">I'm writing a <em>High Performance Hibernate</em> book
+<br>
+<a href="http://eepurl.com/bg3d3n" sl-processed="1">Subscribe</a> to follow my progress
+</div>
+		</aside><aside id="blog_subscription-4" class="widget widget_blog_subscription"><h1 class="widget-title"><label for="subscribe-field">Follow Blog via Email</label></h1>
+				<form action="https://subscribe.wordpress.com/" method="post" accept-charset="utf-8" id="subscribe-blog">
+											<p>Enter your email address to follow this blog and receive notifications of new posts by email.</p>
+<p>Join 904 other followers</p>
+						<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe">
+						<input type="hidden" name="blog_id" value="58563484">
+						<input type="hidden" name="source" value="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/">
+						<input type="hidden" name="sub-type" value="widget">
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-4">
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="7a7c35068e">						<input type="submit" value="Follow">
+					</p>
+				</form>
+			
+</aside><aside id="search-2" class="widget widget_search"><form role="search" method="get" class="search-form" action="http://vladmihalcea.com/">
+	<label>
+		<span class="screen-reader-text">Search for:</span>
+		<input type="search" class="search-field" placeholder="Search …" value="" name="s">
+	</label>
+	<input type="submit" class="search-submit" value="Search">
+	<span class="genericon genericon-search"></span>
+</form>
+</aside><aside id="tag_cloud-5" class="widget widget_tag_cloud"><h1 class="widget-title"></h1><div style="overflow: hidden;"><a href="http://vladmihalcea.com/category/agile/" style="font-size: 129.16666666667%; padding: 1px; margin: 1px;" title="Agile (10)" sl-processed="1">Agile</a> <a href="http://vladmihalcea.com/category/anniversary/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="Anniversary (2)" sl-processed="1">Anniversary</a> <a href="http://vladmihalcea.com/category/architecture/" style="font-size: 122.68518518519%; padding: 1px; margin: 1px;" title="Architecture (8)" sl-processed="1">Architecture</a> <a href="http://vladmihalcea.com/category/asciidoctor/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Asciidoctor (1)" sl-processed="1">Asciidoctor</a> <a href="http://vladmihalcea.com/category/awards/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Awards (1)" sl-processed="1">Awards</a> <a href="http://vladmihalcea.com/category/conference/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Conference (1)" sl-processed="1">Conference</a> <a href="http://vladmihalcea.com/category/java-2/flexypool/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="FlexyPool (2)" sl-processed="1">FlexyPool</a> <a href="http://vladmihalcea.com/category/git/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Git (1)" sl-processed="1">Git</a> <a href="http://vladmihalcea.com/category/java-2/hibernate/" style="font-size: 258.7962962963%; padding: 1px; margin: 1px;" title="Hibernate (50)" sl-processed="1">Hibernate</a> <a href="http://vladmihalcea.com/category/java-2/" style="font-size: 275%; padding: 1px; margin: 1px;" title="Java (55)" sl-processed="1">Java</a> <a href="http://vladmihalcea.com/category/javascript/" style="font-size: 106.48148148148%; padding: 1px; margin: 1px;" title="JavaScript (3)" sl-processed="1">JavaScript</a> <a href="http://vladmihalcea.com/category/java-2/jooq/" style="font-size: 106.48148148148%; padding: 1px; margin: 1px;" title="JOOQ (3)" sl-processed="1">JOOQ</a> <a href="http://vladmihalcea.com/category/jvm/" style="font-size: 100%; padding: 1px; margin: 1px;" title="JVM (1)" sl-processed="1">JVM</a> <a href="http://vladmihalcea.com/category/leadership/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Leadership (1)" sl-processed="1">Leadership</a> <a href="http://vladmihalcea.com/category/learning/" style="font-size: 106.48148148148%; padding: 1px; margin: 1px;" title="Learning (3)" sl-processed="1">Learning</a> <a href="http://vladmihalcea.com/category/linux-2/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Linux (1)" sl-processed="1">Linux</a> <a href="http://vladmihalcea.com/category/management/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Management (1)" sl-processed="1">Management</a> <a href="http://vladmihalcea.com/category/mongodb/" style="font-size: 132.40740740741%; padding: 1px; margin: 1px;" title="MongoDB (11)" sl-processed="1">MongoDB</a> <a href="http://vladmihalcea.com/category/nosql/" style="font-size: 109.72222222222%; padding: 1px; margin: 1px;" title="NoSQL (4)" sl-processed="1">NoSQL</a> <a href="http://vladmihalcea.com/category/python/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Python (1)" sl-processed="1">Python</a> <a href="http://vladmihalcea.com/category/architecture/scalability-architecture/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="Scalability (2)" sl-processed="1">Scalability</a> <a href="http://vladmihalcea.com/category/scrum/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Scrum (1)" sl-processed="1">Scrum</a> <a href="http://vladmihalcea.com/category/java-2/spring-java/" style="font-size: 112.96296296296%; padding: 1px; margin: 1px;" title="Spring (5)" sl-processed="1">Spring</a> <a href="http://vladmihalcea.com/category/java-2/spring-java/spring-integration/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Spring Integration (1)" sl-processed="1">Spring Integration</a> <a href="http://vladmihalcea.com/category/sql/" style="font-size: 119.44444444444%; padding: 1px; margin: 1px;" title="SQL (7)" sl-processed="1">SQL</a> <a href="http://vladmihalcea.com/category/testing/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Testing (1)" sl-processed="1">Testing</a> <a href="http://vladmihalcea.com/category/transactions/" style="font-size: 129.16666666667%; padding: 1px; margin: 1px;" title="Transactions (10)" sl-processed="1">Transactions</a> <a href="http://vladmihalcea.com/category/uml/" style="font-size: 100%; padding: 1px; margin: 1px;" title="UML (1)" sl-processed="1">UML</a> <a href="http://vladmihalcea.com/category/unix/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="Unix (2)" sl-processed="1">Unix</a> <a href="http://vladmihalcea.com/category/workshop/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Workshop (1)" sl-processed="1">Workshop</a> </div></aside><aside id="archives-3" class="widget widget_archive"><h1 class="widget-title">Archives</h1>		<ul>
+	<li><a href="http://vladmihalcea.com/2015/05/" sl-processed="1">May 2015</a>&nbsp;(2)</li>
+	<li><a href="http://vladmihalcea.com/2015/04/" sl-processed="1">April 2015</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2015/03/" sl-processed="1">March 2015</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2015/02/" sl-processed="1">February 2015</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2015/01/" sl-processed="1">January 2015</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/12/" sl-processed="1">December 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/11/" sl-processed="1">November 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/10/" sl-processed="1">October 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/09/" sl-processed="1">September 2014</a>&nbsp;(6)</li>
+	<li><a href="http://vladmihalcea.com/2014/08/" sl-processed="1">August 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/07/" sl-processed="1">July 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/06/" sl-processed="1">June 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/05/" sl-processed="1">May 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/04/" sl-processed="1">April 2014</a>&nbsp;(6)</li>
+	<li><a href="http://vladmihalcea.com/2014/03/" sl-processed="1">March 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/02/" sl-processed="1">February 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/01/" sl-processed="1">January 2014</a>&nbsp;(7)</li>
+	<li><a href="http://vladmihalcea.com/2013/12/" sl-processed="1">December 2013</a>&nbsp;(8)</li>
+	<li><a href="http://vladmihalcea.com/2013/11/" sl-processed="1">November 2013</a>&nbsp;(7)</li>
+	<li><a href="http://vladmihalcea.com/2013/10/" sl-processed="1">October 2013</a>&nbsp;(9)</li>
+	<li><a href="http://vladmihalcea.com/2013/09/" sl-processed="1">September 2013</a>&nbsp;(1)</li>
+		</ul>
+</aside>			</div><!-- #secondary -->
+
+	</div><!-- #content -->
+
+	<footer id="colophon" class="site-footer" role="contentinfo">
+				<div class="site-info">
+			<a href="https://wordpress.com/?ref=footer_website" sl-processed="1">Create a free website or blog at WordPress.com</a>.
+			<span class="sep"> | </span>
+			<a href="https://wordpress.com/themes/wilson/" title="Learn more about this theme" sl-processed="1">The Wilson Theme</a>.		</div><!-- .site-info -->
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!-- wpcom_wp_footer -->
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/gprofiles.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/wpgroho.js"></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-9d2a8329d08e8e8d5584f5b771d4c0c8">
+	</div>
+	<div class="grofile-hash-map-8467574e717b39cc53fbecb4fa3564c2">
+	</div>
+	</div>
+<script type="text/javascript">
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/vladmihalcea.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/vladmihalcea.wordpress.com\/wp-login.php?action=logout&_wpnonce=8ebb3791d3","homeURL":"http:\/\/vladmihalcea.com\/","postID":"1249","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"0","text_direction":"ltr"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource(5)"></script>
+
+	<div id="bit" class="loggedout-follow-normal" style="bottom: -282px;">
+		<a class="bsub" href="javascript:void(0)" sl-processed="1"><span id="bsub-text">Follow</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Follow “Vlad Mihalcea's Blog”</label></h3>
+
+			<form action="https://subscribe.wordpress.com/" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Get every new post delivered to your Inbox.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+						<p class="bit-follow-count">Join 904 other followers</p>
+			<p><input type="email" name="email" value="Enter your email address" onfocus="this.value=(this.value==&quot;Enter your email address&quot;) ? &quot;&quot; : this.value;" onblur="this.value=(this.value==&quot;&quot;) ? &quot;Enter your email address&quot; : this.value;" id="loggedout-follow-field"></p>
+
+			<input type="hidden" name="action" value="subscribe">
+			<input type="hidden" name="blog_id" value="58563484">
+			<input type="hidden" name="source" value="http://vladmihalcea.com/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/">
+			<input type="hidden" name="sub-type" value="loggedout-follow">
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="7a7c35068e"><input type="hidden" name="_wp_http_referer" value="/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/">
+			<p id="bsub-subscribe-button"><input type="submit" value="Sign me up"></p>
+			</form>
+					<div id="bsub-credit"><a href="https://wordpress.com/?ref=lof" sl-processed="1">Build a website with WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-facebook' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+		});
+		</script>
+		<div id="fb-root" class=" fb_reset"><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div><iframe name="fb_xdm_frame_http" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_http" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/NM7BtzAR8RM.htm" style="border: none;"></iframe><iframe name="fb_xdm_frame_https" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_https" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/NM7BtzAR8RM(1).htm" style="border: none;"></iframe></div></div><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div></div></div></div><script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = '//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=249643311490&version=v2.3'; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>			<script type="text/javascript">
+			  (function() {
+			    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+			    po.src = 'https://apis.google.com/js/plusone.js';
+			    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+			  })();
+			</script>
+					<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+				<iframe src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/master.htm" scrolling="no" id="likes-master" name="likes-master" style="display:none;"></iframe>
+		<div id="likes-other-gravatars"><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/form.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var JetpackEmojiSettings = {"base_url":"http:\/\/s0.wp.com\/wp-content\/mu-plugins\/emoji\/twemoji\/"};
+/* ]]> */
+</script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var sharing_js_options = {"lang":"en","counts":"1"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/saved_resource(6)"></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script>	<script type="text/javascript">
+	var skimlinks_pub_id = "725X584219"
+	var skimlinks_sitename = "vladmihalcea.wordpress.com";
+	</script>
+	<script type="text/javascript" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/725X1342.skimlinks.js"></script><script src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/w.js" type="text/javascript" async="" defer=""></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'58563484','blog_tz':'2','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'58563484','v':'wpcom','tz':'2','user_id':'0','post':'1249','subd':'vladmihalcea'}]);
+_stq.push(['extra', {'crypt':'UE5XaGUuOTlwaD85flAmcm1mcmZsaDhkV11YdWtpP0NsWnVkPS9sL0ViLndld3AsdkJ1cXFURjg1cFN+Z1c3MHQydVg3cTBuL0VLL1ZwbmhsV0hlUFdwMm1rVGptMmJ8Wj0uaXdJek95SWNLaXJOay0/WWNWfGVfMzhpfEd5RkxzSD9Kanc3dElXdndwXXxvPzNUeWZMemYtMTVTaVVxbVE3OSVtem8uSDhPL0VlJnJMPzdQc2UrZkQmbCsyVUwvaXpULl1qREdsWVt+c201NXpWVDdJMy8zPTBKR0MxQ3w9YlYrUTNLWEd5PVQlTkJmTlN3SW50NC1KZzMzJWY/WVpTNm5FZUR0WHNKK3NiXStuRV1xbjB5Sl1vfExqNmd0cUVdJSYlWUF0T35xMlRBMUcsbl13MmZfbkVbRVlQL0lNKz9jOWJJQmhFTDU='}]);
+_stq.push([ 'clickTrackerInit', '58563484', '1249' ]);
+	</script>
+<noscript>&lt;img src="http://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /&gt;</noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+
+
+<!--
+	generated in 0.305 seconds
+	73155 bytes batcached for 300 seconds
+-->
+<img src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/g.gif" id="wpstats"><iframe name="oauth2relay247788753" id="oauth2relay247788753" src="./A beginner’s guide to ACID and database transactions   Vlad Mihalcea's Blog_files/postmessageRelay.htm" tabindex="-1" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe><iframe id="google_osd_static_frame_6501046321354" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;"></iframe></body></html>

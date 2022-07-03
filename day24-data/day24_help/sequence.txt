@@ -1,0 +1,28 @@
+0. Full stack demo
+front end : can replace sessionStorage by localStorage
+Replace class style components by functional comps + hooks
+
+
+1. Complete User registration --project objective
+
+2. Spring Data JDBC --exam objective
+
+3. Microservices demo --project objective 
+RestTemplate
+
+DML
+insert into bank_customers values('hdfc-00001','Rama','12345');
+insert into bank_accounts values(default,0,'SAVING',234567,'hdfc-00001');
+insert into bank_accounts values(default,0,'CURRENT',24567,'hdfc-00001');
+
+URL : http://host:port/api/employees/{empId}/accounts/{acctNo}
+Steps on net banking clnt
+1. Add a new method in EmpController for : getting specific emp's a/c dtls
+2. Invoke a method on net banking service layer .
+
+
+
+4. Customizing Transaction management using @Transactional(.....)
+
+5. Begin CMS --lab work 
+

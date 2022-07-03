@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<!-- saved from url=(0103)http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A beginner’s guide to database locking and the lost update phenomena | Vlad Mihalcea's Blog</title>
+<link rel="profile" href="http://gmpg.org/xfn/11">
+<link rel="pingback" href="http://vladmihalcea.com/xmlrpc.php">
+
+<meta name="google-site-verification" content="Pc6l9UZVISKXxNyFjUyuZCDBJ-zGY2rqozVYGbiC_l0">
+		<script src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/cb=gapi.loaded_1" async=""></script><script src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/cb=gapi.loaded_0" async=""></script><script type="text/javascript" async="" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/plusone.js" gapi_processed="true"></script><script id="facebook-jssdk" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/sdk.js"></script><script type="text/javascript" async="" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/wl"></script><script src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/remote-login.php" type="text/javascript"></script>
+		<script type="text/javascript">
+		/* <![CDATA[ */
+			if ( 'function' === typeof WPRemoteLogin ) {
+				document.cookie = "wordpress_test_cookie=test; path=/";
+				if ( document.cookie.match( /(;|^)\s*wordpress_test_cookie\=/ ) ) {
+					WPRemoteLogin();
+				}
+			}
+		/* ]]> */
+		</script>
+		<link rel="alternate" type="application/rss+xml" title="Vlad Mihalcea&#39;s Blog » Feed" href="http://vladmihalcea.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="Vlad Mihalcea&#39;s Blog » Comments Feed" href="http://vladmihalcea.com/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="Vlad Mihalcea&#39;s Blog » A beginner’s guide to database locking and the lost update phenomena Comments Feed" href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/feed/">
+<script type="text/javascript">
+/* <![CDATA[ */
+function addLoadEvent(func){var oldonload=window.onload;if(typeof window.onload!='function'){window.onload=func;}else{window.onload=function(){oldonload();func();}}}
+/* ]]> */
+</script>
+<link rel="stylesheet" id="all-css-0" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource" type="text/css" media="all">
+<link rel="stylesheet" id="wilson-raleway-css" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/css" type="text/css" media="all">
+<link rel="stylesheet" id="wilson-latos-css" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/css(1)" type="text/css" media="all">
+<link rel="stylesheet" id="all-css-4" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource(1)" type="text/css" media="all">
+<link rel="stylesheet" id="print-css-5" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/global-print.css" type="text/css" media="print">
+<link rel="stylesheet" id="all-css-6" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource(2)" type="text/css" media="all">
+<script type="text/javascript">
+/* <![CDATA[ */
+var LoggedOutFollow = {"invalid_email":"Your subscription did not succeed, please try again with a valid email address."};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource(3)"></script>
+<link rel="stylesheet" id="all-css-0" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/style.css" type="text/css" media="all">
+<!--[if lt IE 8]>
+<link rel='stylesheet' id='highlander-comments-ie7-css'  href='https://s2.wp.com/wp-content/mu-plugins/highlander-comments/style-ie7.css?m=1351637563g&#038;ver=20110606' type='text/css' media='all' />
+<![endif]-->
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://vladmihalcea.wordpress.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="Hibernate bytecode enhancement" href="http://vladmihalcea.com/2014/09/08/hibernate-bytecode-enhancement/">
+<link rel="next" title="Preventing lost updates in long conversations" href="http://vladmihalcea.com/2014/09/22/preventing-lost-updates-in-long-conversations/">
+<meta name="generator" content="WordPress.com">
+<link rel="canonical" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog.htm">
+<link rel="shortlink" href="http://wp.me/p3XJ2k-NC">
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=json&url=http%3A%2F%2Fvladmihalcea.com%2F2014%2F09%2F14%2Fa-beginners-guide-to-database-locking-and-the-lost-update-phenomena%2F&for=wpcom-auto-discovery"><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/1.0/?format=xml&url=http%3A%2F%2Fvladmihalcea.com%2F2014%2F09%2F14%2Fa-beginners-guide-to-database-locking-and-the-lost-update-phenomena%2F&for=wpcom-auto-discovery">
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="A beginner&#39;s guide to database locking and the lost update phenomena">
+<meta property="og:url" content="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/">
+<meta property="og:description" content="Introduction A database is highly concurrent system. There&#39;s always a chance of update conflicts, like when two concurring transactions try to update the same record. If there would be only one dat...">
+<meta property="article:published_time" content="2014-09-14T04:33:53+00:00">
+<meta property="article:modified_time" content="2015-04-01T08:49:06+00:00">
+<meta property="article:author" content="http://vladmihalcea.com/author/vladmihalcea/">
+<meta property="og:site_name" content="Vlad Mihalcea&#39;s Blog">
+<meta property="og:image" content="http://vladmihalcea.files.wordpress.com/2014/09/uncontendedtransactions1.png?w=300">
+<meta property="og:image" content="http://vladmihalcea.files.wordpress.com/2014/09/lostupdatesinglerequesttransactions.png?w=300">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:site" content="@vlad_mihalcea">
+<meta name="twitter:image" content="http://vladmihalcea.files.wordpress.com/2014/09/uncontendedtransactions1.png?w=240">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@vlad_mihalcea">
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom">
+<link rel="shortcut icon" type="image/x-icon" href="http://0.gravatar.com/blavatar/89eaf6517ec100c497f0e93a4a3b4806?s=16" sizes="16x16">
+<link rel="icon" type="image/x-icon" href="http://0.gravatar.com/blavatar/89eaf6517ec100c497f0e93a4a3b4806?s=16" sizes="16x16">
+<link rel="apple-touch-icon-precomposed" href="http://1.gravatar.com/blavatar/379c30e6e981004ee182e3706373bfb3?s=114">
+<link rel="openid.server" href="http://vladmihalcea.wordpress.com/?openidserver=1">
+<link rel="openid.delegate" href="http://vladmihalcea.wordpress.com/">
+<link rel="search" type="application/opensearchdescription+xml" href="http://vladmihalcea.com/osd.xml" title="Vlad Mihalcea&#39;s Blog">
+<link rel="search" type="application/opensearchdescription+xml" href="https://wordpress.com/opensearch.xml" title="WordPress.com">
+<meta name="application-name" content="Vlad Mihalcea&#39;s Blog"><meta name="msapplication-window" content="width=device-width;height=device-height"><meta name="msapplication-tooltip" content="Teaching is my way of learning"><meta name="msapplication-task" content="name=Subscribe;action-uri=http://vladmihalcea.com/feed/;icon-uri=http://0.gravatar.com/blavatar/89eaf6517ec100c497f0e93a4a3b4806?s=16"><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=http://s2.wp.com/i/favicon.ico"><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico"><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=http://s2.wp.com/i/favicon.ico"><meta name="title" content="A beginner’s guide to database locking and the lost update phenomena | Vlad Mihalcea&#39;s Blog on WordPress.com">
+<meta name="description" content="Introduction A database is highly concurrent system. There&#39;s always a chance of update conflicts, like when two concurring transactions try to update the same record. If there would be only one database transaction at any time then all operations would be executed sequentially. The challenge comes when multiple transactions try to update the same database…">
+
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/google_service.js">
+</script>
+<script type="text/javascript">
+if ( typeof GS_googleAddAdSenseService == 'function' ) { GS_googleAddAdSenseService("ca-pub-3443918307802676"); }
+if ( typeof GS_googleEnableAllServices == 'function' ) { GS_googleEnableAllServices() };
+</script><script src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/google_ads.js"></script><script type="text/javascript">
+if ( typeof GA_googleAddSlot == 'function' ) { GA_googleAddSlot("ca-pub-3443918307802676", "wpcom_below_post"); }
+</script>
+<script type="text/javascript">
+if ( typeof GA_googleFetchAds == 'function' ) { GA_googleFetchAds(); }
+</script>
+
+<script type="text/javascript">
+var wpcom_ads = { bid: 58563484, pt: 'permalink', wa: 0, as: 0, domain: 'vladmihalcea.com', url: 'http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/', gid: '', };
+</script>
+<link rel="stylesheet" type="text/css" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/shCore.css"><link rel="stylesheet" type="text/css" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/shThemeDefault.css"><style type="text/css" id="syntaxhighlighteranchor"></style>
+<script type="text/javascript">
+	window.google_analytics_uacct = "UA-52447-2";
+</script>
+
+<script type="text/javascript">
+	var _gaq = _gaq || [];
+	_gaq.push(['_setAccount', 'UA-52447-2']);
+	_gaq.push(['_setDomainName', 'none']);
+	_gaq.push(['_setAllowLinker', true]);
+	_gaq.push(['_initData']);
+	_gaq.push(['_trackPageview']);
+
+	(function() {
+		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+		(document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
+	})();
+</script><script type="text/javascript" async="" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/ga.js"></script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/osd.js"></script><link rel="stylesheet" type="text/css" id="gravatar-card-css" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/hovercard.css"><link rel="stylesheet" type="text/css" id="gravatar-card-services-css" href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/services.css"><style type="text/css">.fb_hidden{position:absolute;top:-10000px;z-index:10001}.fb_invisible{display:none}.fb_reset{background:none;border:0;border-spacing:0;color:#000;cursor:auto;direction:ltr;font-family:"lucida grande", tahoma, verdana, arial, sans-serif;font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;letter-spacing:normal;line-height:1;margin:0;overflow:visible;padding:0;text-align:left;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal}.fb_reset>div{overflow:hidden}.fb_link img{border:none}
+.fb_dialog{background:rgba(82, 82, 82, .7);position:absolute;top:-10000px;z-index:10001}.fb_reset .fb_dialog_legacy{overflow:visible}.fb_dialog_advanced{padding:10px;-moz-border-radius:8px;-webkit-border-radius:8px;border-radius:8px}.fb_dialog_content{background:#fff;color:#333}.fb_dialog_close_icon{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 0 transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif);cursor:pointer;display:block;height:15px;position:absolute;right:18px;top:17px;width:15px}.fb_dialog_mobile .fb_dialog_close_icon{top:5px;left:5px;right:auto}.fb_dialog_padding{background-color:transparent;position:absolute;width:1px;z-index:-1}.fb_dialog_close_icon:hover{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -15px transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif)}.fb_dialog_close_icon:active{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -30px transparent;_background-image:url(http://static.ak.fbcdn.net/rsrc.php/v2/yL/r/s816eWC-2sl.gif)}.fb_dialog_loader{background-color:#f6f7f8;border:1px solid #606060;font-size:24px;padding:20px}.fb_dialog_top_left,.fb_dialog_top_right,.fb_dialog_bottom_left,.fb_dialog_bottom_right{height:10px;width:10px;overflow:hidden;position:absolute}.fb_dialog_top_left{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 0;left:-10px;top:-10px}.fb_dialog_top_right{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -10px;right:-10px;top:-10px}.fb_dialog_bottom_left{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -20px;bottom:-10px;left:-10px}.fb_dialog_bottom_right{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ye/r/8YeTNIlTZjm.png) no-repeat 0 -30px;right:-10px;bottom:-10px}.fb_dialog_vert_left,.fb_dialog_vert_right,.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{position:absolute;background:#525252;filter:alpha(opacity=70);opacity:.7}.fb_dialog_vert_left,.fb_dialog_vert_right{width:10px;height:100%}.fb_dialog_vert_left{margin-left:-10px}.fb_dialog_vert_right{right:0;margin-right:-10px}.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{width:100%;height:10px}.fb_dialog_horiz_top{margin-top:-10px}.fb_dialog_horiz_bottom{bottom:0;margin-bottom:-10px}.fb_dialog_iframe{line-height:0}.fb_dialog_content .dialog_title{background:#6d84b4;border:1px solid #3a5795;color:#fff;font-size:14px;font-weight:bold;margin:0}.fb_dialog_content .dialog_title>span{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/yd/r/Cou7n-nqK52.gif) no-repeat 5px 50%;float:left;padding:5px 0 7px 26px}body.fb_hidden{-webkit-transform:none;height:100%;margin:0;overflow:visible;position:absolute;top:-10000px;left:0;width:100%}.fb_dialog.fb_dialog_mobile.loading{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/ya/r/3rhSv5V8j3o.gif) white no-repeat 50% 50%;min-height:100%;min-width:100%;overflow:hidden;position:absolute;top:0;z-index:10001}.fb_dialog.fb_dialog_mobile.loading.centered{max-height:590px;min-height:590px;max-width:500px;min-width:500px}#fb-root #fb_dialog_ipad_overlay{background:rgba(0, 0, 0, .45);position:absolute;left:0;top:0;width:100%;min-height:100%;z-index:10000}#fb-root #fb_dialog_ipad_overlay.hidden{display:none}.fb_dialog.fb_dialog_mobile.loading iframe{visibility:hidden}.fb_dialog_content .dialog_header{-webkit-box-shadow:white 0 1px 1px -1px inset;background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#738ABA), to(#2C4987));border-bottom:1px solid;border-color:#1d4088;color:#fff;font:14px Helvetica, sans-serif;font-weight:bold;text-overflow:ellipsis;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0;vertical-align:middle;white-space:nowrap}.fb_dialog_content .dialog_header table{-webkit-font-smoothing:subpixel-antialiased;height:43px;width:100%}.fb_dialog_content .dialog_header td.header_left{font-size:12px;padding-left:5px;vertical-align:middle;width:60px}.fb_dialog_content .dialog_header td.header_right{font-size:12px;padding-right:5px;vertical-align:middle;width:60px}.fb_dialog_content .touchable_button{background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#4966A6), color-stop(.5, #355492), to(#2A4887));border:1px solid #2f477a;-webkit-background-clip:padding-box;-webkit-border-radius:3px;-webkit-box-shadow:rgba(0, 0, 0, .117188) 0 1px 1px inset, rgba(255, 255, 255, .167969) 0 1px 0;display:inline-block;margin-top:3px;max-width:85px;line-height:18px;padding:4px 12px;position:relative}.fb_dialog_content .dialog_header .touchable_button input{border:none;background:none;color:#fff;font:12px Helvetica, sans-serif;font-weight:bold;margin:2px -12px;padding:2px 6px 3px 6px;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog_content .dialog_header .header_center{color:#fff;font-size:16px;font-weight:bold;line-height:18px;text-align:center;vertical-align:middle}.fb_dialog_content .dialog_content{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/y9/r/jKEcVPZFk-2.gif) no-repeat 50% 50%;border:1px solid #555;border-bottom:0;border-top:0;height:150px}.fb_dialog_content .dialog_footer{background:#f6f7f8;border:1px solid #555;border-top-color:#ccc;height:40px}#fb_dialog_loader_close{float:left}.fb_dialog.fb_dialog_mobile .fb_dialog_close_button{text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog.fb_dialog_mobile .fb_dialog_close_icon{visibility:hidden}
+.fb_iframe_widget{display:inline-block;position:relative}.fb_iframe_widget span{display:inline-block;position:relative;text-align:justify}.fb_iframe_widget iframe{position:absolute}.fb_iframe_widget_fluid_desktop,.fb_iframe_widget_fluid_desktop span,.fb_iframe_widget_fluid_desktop iframe{max-width:100%}.fb_iframe_widget_fluid_desktop iframe{min-width:220px;position:relative}.fb_iframe_widget_lift{z-index:1}.fb_hide_iframes iframe{position:relative;left:-10000px}.fb_iframe_widget_loader{position:relative;display:inline-block}.fb_iframe_widget_fluid{display:inline}.fb_iframe_widget_fluid span{width:100%}.fb_iframe_widget_loader iframe{min-height:32px;z-index:2;zoom:1}.fb_iframe_widget_loader .FB_Loader{background:url(http://static.ak.fbcdn.net/rsrc.php/v2/y9/r/jKEcVPZFk-2.gif) no-repeat;height:32px;width:32px;margin-left:-16px;position:absolute;left:50%;z-index:4}</style></head>
+
+<body class="single single-post postid-3076 single-format-standard mp6 customizer-styles-applied individual-blog highlander-enabled highlander-light tablet-desktop">
+<div id="page" class="hfeed site">
+
+	<a class="skip-link screen-reader-text" href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#content">Skip to content</a>
+	<header id="masthead" class="site-header" role="banner">
+		<div class="site-branding">
+													<h1 class="site-title"><a href="http://vladmihalcea.com/" rel="home">Vlad Mihalcea's Blog</a></h1>
+			<h2 class="site-description">Teaching is my way of learning</h2>
+		</div>
+
+		<nav id="site-navigation" class="main-navigation" role="navigation">
+			<h1><span class="screen-reader-text">Primary Menu</span></h1>
+			<button class="menu-toggle"><span class="genericon genericon-menu"></span><span class="screen-reader-text">Menu</span></button>
+
+			<div class="menu-primary-container"><ul id="menu-primary" class="menu nav-menu"><li id="menu-item-2075" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-home menu-item-2075"><a href="http://vladmihalcea.com/">Home</a></li>
+<li id="menu-item-2078" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2078"><a href="http://vladmihalcea.com/tutorials/">Tutorials</a>
+<ul class="sub-menu">
+	<li id="menu-item-2869" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2869"><a href="http://vladmihalcea.com/tutorials/hibernate/">Hibernate</a></li>
+	<li id="menu-item-4308" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4308"><a href="http://vladmihalcea.com/tutorials/mongodb/">MongoDB</a></li>
+	<li id="menu-item-4394" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-4394"><a href="http://vladmihalcea.com/tutorials/spring/">Spring</a></li>
+	<li id="menu-item-2079" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2079"><a href="http://vladmihalcea.com/tutorials/git/">Git</a></li>
+</ul>
+</li>
+<li id="menu-item-2076" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-2076"><a href="http://vladmihalcea.com/about/">About</a></li>
+</ul></div>		</nav><!-- #site-navigation -->
+	</header><!-- #masthead -->
+
+	<div id="content" class="site-content">
+
+	<div id="primary" class="content-area">
+		<main id="main" class="site-main" role="main">
+
+		
+			
+<article id="post-3076" class="post-3076 post type-post status-publish format-standard hentry category-hibernate category-sql category-transactions tag-database-locks tag-hibernate-2 tag-hibernate-training tag-hibernate-tutorial tag-lost-updates tag-mvcc tag-postgresql tag-read-committed tag-repeatable-read tag-transactions-2">
+	<header class="entry-header">
+					<h1 class="entry-title">A beginner’s guide to database locking and the lost update&nbsp;phenomena</h1>				<div class="entry-meta">
+			<span class="posted-on"><a href="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog.htm" rel="bookmark"><time class="entry-date published" datetime="2014-09-14T06:33:53+00:00">September 14, 2014</time><time class="updated" datetime="2015-04-01T10:49:06+00:00">April 1, 2015</time></a></span><span class="byline"><span class="author vcard"><a class="url fn n" href="http://vladmihalcea.com/author/vladmihalcea/">vladmihalcea</a></span></span>					</div><!-- .entry-meta -->
+	</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<h1>Introduction</h1>
+<p>A database is <a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/2014/05/28/the-data-knowledge-stack/">highly concurrent system</a>. There’s always a chance of update conflicts, like when two concurring transactions try to update the same record. If there would be only one database transaction at any time then all operations would be executed sequentially. The challenge comes when multiple transactions try to update the same database rows as we still have to ensure consistent data state transitions.</p>
+<p>The SQL standard defines <a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/2014/01/05/a-beginners-guide-to-acid-and-database-transactions/">three consistency anomalies (phenomena)</a>:</p>
+<ul>
+<li><em>Dirty reads</em>, prevented by Read Committed, Repeatable Read and Serializable isolation levels</li>
+<li><em>Non-repeatable reads</em>, prevented by Repeatable Read and Serializable isolation levels</li>
+<li><em>Phantom reads</em>, prevented by the Serializable isolation level</li>
+</ul>
+<p>A lesser-known phenomena is the <em>lost updates</em> anomaly and that’s what we are going to discuss in this current article.</p>
+<h1>Isolation levels</h1>
+<p>Most database systems use Read Committed as the default isolation level (MySQL using Repeatable Read instead). Choosing the isolation level is about finding the right balance of consistency and scalability for our current application requirements. </p>
+<p>All the following examples are going to be run on <a href="http://www.postgresql.org/docs/9.3/static/transaction-iso.html">PostgreSQL 9.3</a>. Other database systems may behave differently according to their specific ACID implementation. </p>
+<p>PostgreSQL uses both locks and <a href="http://www.postgresql.org/docs/9.3/static/mvcc-intro.html">MVCC (Multiversion Concurrency Control)</a>. In MVCC read and write locks are not conflicting, so reading doesn’t block writing and writing doesn’t block reading either. </p>
+<p>Because most applications use the default isolation level, it’s very important to understand the Read Committed characteristics:</p>
+<ul>
+<li>Queries only see data committed before the query began and also the current transaction uncommitted changes</li>
+<li>Concurrent changes committed during a query execution won’t be visible to the current query</li>
+<li>UPDATE/DELETE statements use locks to prevent concurrent modifications</li>
+</ul>
+<p>If two transactions try to update the same row, the second transaction must wait for the first one to either commit or rollback, and if the first transaction has been committed, then the second transaction DML WHERE clause must be reevaluated to see if the match is still relevant.</p>
+<p><a href="https://vladmihalcea.files.wordpress.com/2014/09/uncontendedtransactions1.png"><img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/uncontendedtransactions1.png" alt="UncontendedTransactions" width="300" height="166" class="alignnone size-medium wp-image-3097"></a></p>
+<p>In this example Bob’s UPDATE must wait for Alice’s transaction to end (commit/rollback) in order to proceed further.</p>
+<p>Read Committed accommodates more concurrent transactions than other stricter isolation levels, but less locking leads to better chances of losing updates.</p>
+<h1>Lost updates</h1>
+<p>If two transactions are updating different columns of the same row, then there is no conflict. The second update blocks until the first transaction is committed and the final result reflects both update changes.</p>
+<p>If the two transactions want to change the same columns, the second transaction will overwrite the first one, therefore loosing the first transaction update.</p>
+<p>So an update is lost when a user overrides the current database state without realizing that someone else changed it between the moment of data loading and the moment the update occurs.</p>
+<p><a href="https://vladmihalcea.files.wordpress.com/2014/09/lostupdatesinglerequesttransactions.png"><img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/lostupdatesinglerequesttransactions.png" alt="LostUpdateSingleRequestTransactions" width="300" height="165" class="alignnone size-medium wp-image-3116"></a></p>
+<p>In this example Bob is not aware that Alice has just changed the quantity from 7 to 6, so her UPDATE is overwritten by Bob’s change.</p>
+<h1>The typical find-modify-flush ORM strategy</h1>
+<p>Hibernate (like any other ORM tool) automatically translates <a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/2014/07/30/a-beginners-guide-to-jpahibernate-entity-state-transitions/">entity state transitions to SQL queries</a>. You first load an entity, change it and let the <a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/2014/08/07/a-beginners-guide-to-jpahibernate-flush-strategies/">Hibernate flush mechanism</a> syncronize all changes with the database.</p>
+<div><div id="highlighter_840116" class="syntaxhighlighter  java"><table border="0" cellpadding="0" cellspacing="0"><tbody><tr><td class="gutter"><div class="line number1 index0 alt2">1</div><div class="line number2 index1 alt1">2</div><div class="line number3 index2 alt2">3</div><div class="line number4 index3 alt1">4</div><div class="line number5 index4 alt2">5</div><div class="line number6 index5 alt1">6</div><div class="line number7 index6 alt2">7</div><div class="line number8 index7 alt1">8</div><div class="line number9 index8 alt2">9</div><div class="line number10 index9 alt1">10</div><div class="line number11 index10 alt2">11</div></td><td class="code"><div class="container"><div class="line number1 index0 alt2"><code class="java keyword">public</code> <code class="java plain">Product incrementLikes(Long id) {</code></div><div class="line number2 index1 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Product product = entityManager.find(Product.</code><code class="java keyword">class</code><code class="java plain">, id);</code></div><div class="line number3 index2 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">product.incrementLikes(); </code></div><div class="line number4 index3 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">product;</code></div><div class="line number5 index4 alt2"><code class="java plain">}</code></div><div class="line number6 index5 alt1">&nbsp;</div><div class="line number7 index6 alt2"><code class="java keyword">public</code> <code class="java plain">Product setProductQuantity(Long id, Long quantity) {</code></div><div class="line number8 index7 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">Product product = entityManager.find(Product.</code><code class="java keyword">class</code><code class="java plain">, id);</code></div><div class="line number9 index8 alt2"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java plain">product.setQuantity(quantity);</code></div><div class="line number10 index9 alt1"><code class="java spaces">&nbsp;&nbsp;&nbsp;&nbsp;</code><code class="java keyword">return</code> <code class="java plain">product;</code></div><div class="line number11 index10 alt2"><code class="java plain">}</code></div></div></td></tr></tbody></table></div></div>
+<p>As I’ve already pointed out, all UPDATE statements acquire write locks, even in Read Committed isolation. The persistence context write-behind policy aims to reduce the lock holding interval but the longer the period between the read and the write operations the more chances of getting into a lost update situation.</p>
+<p>Hibernate includes all row columns in an UPDATE statement. This strategy can be changed to include only the dirty properties (through the <a href="http://docs.jboss.org/hibernate/orm/4.3/javadocs/org/hibernate/annotations/DynamicUpdate.html">@DynamicUpdate</a> annotation) but <a href="http://docs.jboss.org/hibernate/orm/4.3/manual/en-US/html/ch05.html#mapping-declaration-class">the reference documentation warns</a> us about its effectiveness:</p>
+<blockquote><p>Although these settings can increase performance in some cases, they can actually decrease performance in others.</p></blockquote>
+<p>So let’s see how Alice and Bob concurrently update the same Product using an ORM framework:</p>
+<table>
+<tbody><tr>
+<th>Alice</th>
+<th>Bob</th>
+</tr>
+<tr>
+<td>
+store=# BEGIN;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 ROW)</p></td>
+<td>
+store=# BEGIN;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 ROW)</p></td>
+</tr>
+<tr>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (6, 7) WHERE ID = 1;
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (5, 10) WHERE ID = 1;
+</td>
+</tr>
+<tr>
+<td>
+store=# COMMIT;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     6 |        7<br>
+(1 ROW)</p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# COMMIT;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |       10<br>
+(1 ROW)</p></td>
+</tr>
+<tr>
+<td>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |       10<br>
+(1 ROW)</p></td>
+<td>
+</td>
+</tr>
+</tbody></table>
+<p>Again Alice’s update is lost without Bob ever knowing he overwrote her changes. We should always prevent data integrity anomalies, so let’s see how we can overcome this phenomena.</p>
+<h2>Repeatable Read</h2>
+<p>Using Repeatable Read (as well as Serializable which offers a even stricter isolation level) can prevent lost updates across concurrent database transactions. </p>
+<table>
+<tbody><tr>
+<th>Alice</th>
+<th>Bob</th>
+</tr>
+<tr>
+<td>
+store=# BEGIN;<br>
+store=# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 ROW)
+</p></td>
+<td>
+store=# BEGIN;<br>
+store=# SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 ROW)
+</p></td>
+</tr>
+<tr>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (6, 7) WHERE ID = 1;
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (5, 10) WHERE ID = 1;
+</td>
+</tr>
+<tr>
+<td>
+store=# COMMIT;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     6 |        7<br>
+(1 ROW)
+</p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+ERROR:  could not serialize access due to concurrent update<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<br>
+ERROR:  current transaction is aborted, commands ignored until end of transaction block<br>
+(1 ROW)
+</td>
+</tr>
+</tbody></table>
+<p>This time, Bob couldn’t overwrite Alice’s changes and his transaction was aborted. In Repeatable Read, a query will see the data snapshot as of the start of the current transaction. Changes committed by other concurrent transactions are not visible to the current transaction. </p>
+<p>If two transactions attempt to modify the same record, the second transaction will wait for the first one to either commit or rollback. If the first transaction commits, then the second one must be aborted to prevent lost updates.</p>
+<h1>SELECT FOR UPDATE</h1>
+<p>Another solution would be to use the <a href="http://www.postgresql.org/docs/9.3/static/sql-select.html#SQL-FOR-UPDATE-SHARE">FOR UPDATE</a> with the default Read Committed isolation level. This locking clause acquires the same write locks as with UPDATE and DELETE statements.</p>
+<table>
+<tbody><tr>
+<th>Alice</th>
+<th>Bob</th>
+</tr>
+<tr>
+<td>
+store=# BEGIN;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1 FOR UPDATE;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 ROW)
+</p></td>
+<td>
+store=# BEGIN;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1 FOR UPDATE;
+</td>
+</tr>
+<tr>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (6, 7) WHERE ID = 1;<br>
+store=# COMMIT;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> ID | LIKES | QUANTITY<br>
+—-+——-+———-<br>
+  1 |     6 |        7<br>
+(1 ROW)
+</p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+ id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     6 |        7<br>
+(1 row)<p></p>
+<p>store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (6, 10) WHERE ID = 1;<br>
+UPDATE 1<br>
+store=# COMMIT;<br>
+COMMIT<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<br>
+ id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     6 |       10<br>
+(1 row)
+</p></td>
+</tr>
+</tbody></table>
+<p>Bob couldn’t proceed with the SELECT statement because Alice has already acquired the write locks on the same row. Bob will have to wait for Alice to end her transaction and when Bob’s SELECT is unblocked he will automatically see her changes, therefore Alice’s UPDATE won’t be lost.</p>
+<p>Both transactions should use the FOR UPDATE locking. If the first transaction doesn’t acquire the write locks, the lost update can still happen.</p>
+<table>
+<tbody><tr>
+<th>Alice</th>
+<th>Bob</th>
+</tr>
+<tr>
+<td>
+store=# BEGIN;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 row)
+</p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# BEGIN;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1 FOR UPDATE<p></p>
+<p> id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     5 |        7<br>
+(1 row)
+</p></td>
+</tr>
+<tr>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (6, 7) WHERE ID = 1;
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY) = (6, 10) WHERE ID = 1;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     6 |       10<br>
+(1 row)<br>
+store=# COMMIT;
+</p></td>
+</tr>
+<tr>
+<td>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     6 |        7<br>
+(1 row)</p>
+<p>store=# COMMIT;
+</p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity<br>
+—-+——-+———-<br>
+  1 |     6 |        7<br>
+(1 row)
+</p></td>
+</tr>
+</tbody></table>
+<p>Alice’s UPDATE is blocked until Bob releases the write locks at the end of his current transaction. But Alice’s persistence context is using a stale entity snapshot, so she overwrites Bob changes, leading to another lost update situation.</p>
+<h1>Optimistic Locking</h1>
+<p>My favorite approach is to replace pessimistic locking with an optimistic locking mechanism. Like MVCC, optimistic locking defines a versioning concurrency control model that works without acquiring additional database write locks. </p>
+<p>The product table will also include a version column that prevents old data snapshots to overwrite the latest data.</p>
+<table>
+<tbody><tr>
+<th>Alice</th>
+<th>Bob</th>
+</tr>
+<tr>
+<td>
+store=# BEGIN;<br>
+BEGIN<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity | version<br>
+—-+——-+———-+———<br>
+  1 |     5 |        7 |       2<br>
+(1 row)
+</p></td>
+<td>
+store=# BEGIN;<br>
+BEGIN<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity | version<br>
+—-+——-+———-+———<br>
+  1 |     5 |        7 |       2<br>
+(1 row)
+</p></td>
+</tr>
+<tr>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY, VERSION) = (6, 7, 3) WHERE (ID, VERSION) = (1, 2);<br>
+UPDATE 1
+</td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+store=# UPDATE PRODUCT SET (LIKES, QUANTITY, VERSION) = (5, 10, 3) WHERE (ID, VERSION) = (1, 2);
+</td>
+</tr>
+<tr>
+<td>
+store=# COMMIT;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity | version<br>
+—-+——-+———-+———<br>
+  1 |     6 |        7 |       3<br>
+(1 row)
+</p></td>
+<td>
+</td>
+</tr>
+<tr>
+<td>
+</td>
+<td>
+UPDATE 0<br>
+store=# COMMIT;<br>
+store=# SELECT * FROM PRODUCT WHERE ID = 1;<p></p>
+<p> id | likes | quantity | version<br>
+—-+——-+———-+———<br>
+  1 |     6 |        7 |       3<br>
+(1 row)
+</p></td>
+</tr>
+</tbody></table>
+<p>Every UPDATE takes the load-time version into the WHERE clause, assuming no one has changed this row since it was retrieved from the database. If some other transaction manages to commit a newer entity version, the UPDATE WHERE clause will no longer match any row and so the lost update is prevented. </p>
+<p>Hibernate uses the <a href="http://docs.oracle.com/javase/8/docs/api/java/sql/PreparedStatement.html#executeUpdate%28%29">PreparedStatement#executeUpdate</a> result to check the number of updated rows. If no row was matched, it then throws a <a href="http://docs.jboss.org/hibernate/core/4.3/javadocs/org/hibernate/StaleObjectStateException.html">StaleObjectStateException</a> (when using Hibernate API) or an <a href="http://docs.oracle.com/javaee/7/api/javax/persistence/OptimisticLockException.html">OptimisticLockException</a> (when using JPA). </p>
+<p>Like with Repeatable Read the current transaction and the persistence context are aborted, in respect to atomicity guarantees.</p>
+<h1>Conclusion</h1>
+<p>Lost updates can happen unless you plan for preventing such situations. Other than optimistic locking, all pessimistic locking approaches are effective only in the scope of the same database transaction, when both the SELECT and the UPDATE statements are executed in the same physical transaction. </p>
+<p>In my next post I will explain why optimistic locking is the only viable solution when using application-level transactions, like it’s the case for most web applications.</p>
+<p><strong>If you have enjoyed reading my article and you’re looking forward to getting instant email notifications of my latest posts, you just need to <a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/follow-me/">follow my blog</a>.</strong></p>
+
+<div class="wpcnt">
+<div class="wpa">
+<a class="wpa-about" href="http://wordpress.com/about-these-ads/" rel="nofollow">About these ads</a>
+<script type="text/javascript">
+		var wpcom_adclk_hovering = false;
+		var wpcom_adclk_recorded = false;
+		var wpcom_adclk_theme = "Wilson";
+		var wpcom_adclk_slot = "wpcom_below_post";
+		var wpcom_adclk_network = ( typeof wpcom_adclk_network === "undefined" ) ? "" : wpcom_adclk_network ;
+
+		jQuery(document).ready( function() {
+			function wpcom_adclk_hover_yes() { wpcom_adclk_hovering = true; }
+			function wpcom_adclk_hover_no() { wpcom_adclk_hovering = false; }
+			jQuery(".wpa").click(wpcom_adclk_click);
+			jQuery(".wpa iframe").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+			jQuery(".wpa object").hover( wpcom_adclk_hover_yes, wpcom_adclk_hover_no );
+
+			jQuery(window).blur( function() {
+				if ( wpcom_adclk_hovering ) { wpcom_adclk_click(); }
+			});
+		});
+
+		function wpcom_adclk_impression() {
+			var stat_gif = document.location.protocol + "//pixel.wp.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_imp_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_imp_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_imp_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_imp_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			return true;
+		}
+
+		function wpcom_adclk_click() {
+			if (wpcom_adclk_recorded) { return true; } // no double counting
+			var stat_gif = document.location.protocol + "//pixel.wp.com/g.gif?v=wpcom-no-pv";
+			stat_gif += "&x_ads_click_theme=" + wpcom_adclk_theme;
+			stat_gif += "&x_ads_click_placement="+wpcom_adclk_slot;
+			stat_gif += "&x_ads_click_network=" + wpcom_adclk_network;
+			stat_gif += "&x_ads_click_theme_network="+wpcom_adclk_theme+"_"+wpcom_adclk_network;
+
+			new Image().src = stat_gif + "&baba=" + Math.random();
+			wpcom_adclk_recorded = true;
+			var now=new Date(); var end=now.getTime()+250;
+			while(true){now=new Date();if(now.getTime()>end){break;}}
+			return true;
+		}
+	
+if ( typeof GA_googleAddAttr == 'function' ) {
+GA_googleAddAttr("AdOpt", "1");
+GA_googleAddAttr("Origin", "other");
+GA_googleAddAttr("LangId", "1");
+GA_googleAddAttr("Domain", "vladmihalcea.com");
+GA_googleAddAttr("BlogId", "58563484");
+GA_googleAddAttr("PageURL", "http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/");
+GA_googleAddAttr("Autotag", "business");
+GA_googleAddAttr("Autotag", "technology");
+GA_googleAddAttr("Tag", "hibernate");
+GA_googleAddAttr("Tag", "sql");
+GA_googleAddAttr("Tag", "transactions");
+GA_googleAddAttr("Tag", "database-locks");
+GA_googleAddAttr("Tag", "hibernate-2");
+GA_googleAddAttr("Tag", "hibernate-training");
+GA_googleAddAttr("Tag", "hibernate-tutorial");
+GA_googleAddAttr("Tag", "lost-updates");
+GA_googleAddAttr("Tag", "mvcc");
+GA_googleAddAttr("Tag", "postgresql");
+GA_googleAddAttr("Tag", "read-committed");
+GA_googleAddAttr("Tag", "repeatable-read");
+GA_googleAddAttr("Tag", "transactions-2");
+GA_googleAddAttr("theme_bg", "ffffff");
+GA_googleAddAttr("theme_border", "eeeeee");
+GA_googleAddAttr("theme_text", "555555");
+GA_googleAddAttr("theme_link", "ff706c");
+GA_googleAddAttr("theme_url", "ff706c");
+GA_googleAddAdSensePageAttr("google_page_url", "http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/");
+GA_googleFillSlot("wpcom_below_post");
+}
+</script><script src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/ads"></script><div id="google_ads_div_wpcom_below_post_ad_wrapper">
+<div id="google_ads_div_wpcom_below_post_ad_container" style="display:inline-block;"><div id="grv-personalization-16" style="width: 300px; height: 250px; overflow: hidden; position: absolute; top: -10000px; left: -10000px;"><iframe frameborder="0" scrolling="no" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/w2.htm" style="overflow: hidden; width: 300px; height: 250px;"></iframe></div>
+<script type="text/javascript">
+  //<![CDATA[
+ function _grc(k){return(document.cookie.match('(^|; )'+k+'=([^;]*)')||0)[2]}
+    (function(){
+    window.gravityInsightsParams = {
+      'type': 'content',
+      'site_guid': '361837bc83c4c2cba7b350dff56a564f',
+      'user_guid': _grc('grvinsights'),
+      'sourceUrl': 'vladmihalcea.com',
+    };
+    var b,c,d,e,f,g,h,i;f=(b=!0===gravityInsightsParams.useGravityUserGuid?1:0,e=b?"":gravityInsightsParams.user_guid||(null!=(g=/grvinsights=([^;]+)/.exec(document.cookie))?g[1]:void 0)||"",c=(null!=(h=window.jQuery)?null!=(i=h.fn)?i.jquery:void 0:void 0)||"","http://rma-api.gravity.com/v1/api/intelligence/wl?jq="+c+"&sg="+gravityInsightsParams.site_guid+"&ug="+e+"&ugug="+b+"&pl=16&id=grv-personalization-16&type=iframe");
+    window.grvMakeScript=function(j){var a;a=document.createElement("script");a.type="text/javascript";a.async=!0;a.src=j;return a};d=document.getElementsByTagName("script")[0];f&&d.parentNode.insertBefore(window.grvMakeScript(f),d);})();
+  //]]>
+</script>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<script type="text/javascript">
+jQuery( window ).load( function() {
+    if ( jQuery(".wpa script[src*='virool.com']").length > 0 || jQuery(".wpa script[src*='shareth.ru']").length > 0 || jQuery(".wpa iframe[src*='boomvideo.tv']").length > 0 || jQuery(".wpa iframe[src*='viewablemedia.net']").length > 0 || jQuery(".wpa .sharethrough-placement").length > 0 ) {
+        jQuery( '.wpa' ).css( 'width', '400px' );
+    }
+setTimeout(function(){if(typeof GS_googleAddAdSenseService !== 'function'){new Image().src=document.location.protocol+"//pixel.wp.com/g.gif?v=wpcom-no-pv&x_noads=adblock&baba="+Math.random()}},100);
+} );
+</script>
+
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-official sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-facebook"><div class="fb-share-button fb_iframe_widget" data-href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/" data-layout="button_count" fb-xfbml-state="rendered" fb-iframe-plugin-query="app_id=249643311490&amp;container_width=0&amp;href=http%3A%2F%2Fvladmihalcea.com%2F2014%2F09%2F14%2Fa-beginners-guide-to-database-locking-and-the-lost-update-phenomena%2F&amp;layout=button_count&amp;locale=en_US&amp;sdk=joey"><span style="vertical-align: bottom; width: 86px; height: 20px;"><iframe name="f3888f267" width="1000px" height="1000px" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" title="fb:share_button Facebook Social Plugin" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/share_button.htm" class="" style="border: none; visibility: visible; width: 86px; height: 20px;"></iframe></span></div></li><li class="share-google-plus-1"><div class="googleplus1_button"><div id="___plus_0" style="text-indent: 0px; margin: 0px; padding: 0px; background-color: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 82px; height: 20px; background-position: initial initial; background-repeat: initial initial;"><iframe frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 82px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I0_1431843056266" name="I0_1431843056266" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/sharebutton.htm" data-gapiattached="true" title="+Share"></iframe></div></div></li><li class="share-twitter"><div class="twitter_button"><iframe allowtransparency="true" frameborder="0" scrolling="no" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/tweet_button.htm" style="width:101px; height:20px;"></iframe></div></li><li class="share-reddit"><div class="reddit_button"><iframe src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/button1.htm" height="22" width="120" scrolling="no" frameborder="0"></iframe></div></li><li class="share-end"></li></ul></div></div></div><div class="sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-loaded" id="like-post-wrapper-58563484-3076-555830e5b9c04" data-src="//widgets.wp.com/likes/#blog_id=58563484&amp;post_id=3076&amp;origin=vladmihalcea.wordpress.com&amp;obj_id=58563484-3076-555830e5b9c04" data-name="like-post-frame-58563484-3076-555830e5b9c04"><h3 class="sd-title">Like this:</h3><div class="likes-widget-placeholder post-likes-widget-placeholder" style="height: 55px; display: none;"><span class="button"><span>Like</span></span> <span class="loading">Loading...</span></div><iframe class="post-likes-widget jetpack-likes-widget" name="like-post-frame-58563484-3076-555830e5b9c04" height="55px" width="100%" frameborder="0" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource.htm"></iframe><span class="sd-text-color"></span><a class="sd-link-color"></a></div>
+<div id="jp-relatedposts" class="jp-relatedposts" style="display: block;">
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+<div class="jp-relatedposts-items jp-relatedposts-items-minimal"><p class="jp-relatedposts-post jp-relatedposts-post0" data-post-id="3588" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://vladmihalcea.com/2014/12/23/a-beginners-guide-to-transaction-isolation-levels-in-enterprise-java/" title="A beginner&#39;s guide to transaction isolation levels in enterprise Java
+
+Introduction A relational database strong consistency model is based on ACID transaction properties. In this post we are going to unravel the reasons behind using different transaction isolation levels and various configuration patterns for both resource local and JTA transactions. Isolation and consistency In a relational database system, atomicity and…" rel="nofollow" data-origin="3076" data-position="0">A beginner's guide to transaction isolation levels in enterprise Java</a></span><span class="jp-relatedposts-post-context">In "Hibernate"</span></p><p class="jp-relatedposts-post jp-relatedposts-post1" data-post-id="3742" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://vladmihalcea.com/2015/01/12/a-beginners-guide-to-java-persistence-locking/" title="A beginner&#39;s guide to Java Persistence locking
+
+Implicit locking In concurrency theory, locking is used for protecting mutable shared data against hazardous data integrity anomalies. Because lock management is a very complex problem, most applications rely on their data provider implicit locking techniques. Delegating the whole locking responsibility to the database system can both simplify application development…" rel="nofollow" data-origin="3076" data-position="1">A beginner's guide to Java Persistence locking</a></span><span class="jp-relatedposts-post-context">In "Hibernate"</span></p><p class="jp-relatedposts-post jp-relatedposts-post2" data-post-id="3142" data-post-format="false"><span class="jp-relatedposts-post-title"><a class="jp-relatedposts-post-a" href="http://vladmihalcea.com/2014/09/22/preventing-lost-updates-in-long-conversations/" title="Preventing lost updates in long conversations
+
+Introduction All database statements are executed within the context of a physical transaction, even when we don&#39;t explicitly declare transaction boundaries (BEGIN/COMMIT/ROLLBACK). Data integrity is enforced by the ACID properties of database transactions. Logical vs Physical transactions An logical transaction is an application-level unit of work that may span over…" rel="nofollow" data-origin="3076" data-position="2">Preventing lost updates in long conversations</a></span><span class="jp-relatedposts-post-context">In "Hibernate"</span></p></div></div></div>			</div><!-- .entry-content -->
+
+	<footer class="entry-footer">
+				<span class="cat-links">
+			Categories: <a href="http://vladmihalcea.com/category/java-2/hibernate/" rel="category tag">Hibernate</a>, <a href="http://vladmihalcea.com/category/sql/" rel="category tag">SQL</a>, <a href="http://vladmihalcea.com/category/transactions/" rel="category tag">Transactions</a>		</span>
+		
+				<span class="tag-links">
+			Tags: <a href="http://vladmihalcea.com/tag/database-locks/" rel="tag">database locks</a>, <a href="http://vladmihalcea.com/tag/hibernate-2/" rel="tag">hibernate</a>, <a href="http://vladmihalcea.com/tag/hibernate-training/" rel="tag">Hibernate training</a>, <a href="http://vladmihalcea.com/tag/hibernate-tutorial/" rel="tag">Hibernate tutorial</a>, <a href="http://vladmihalcea.com/tag/lost-updates/" rel="tag">lost updates</a>, <a href="http://vladmihalcea.com/tag/mvcc/" rel="tag">MVCC</a>, <a href="http://vladmihalcea.com/tag/postgresql/" rel="tag">PostgreSQL</a>, <a href="http://vladmihalcea.com/tag/read-committed/" rel="tag">read committed</a>, <a href="http://vladmihalcea.com/tag/repeatable-read/" rel="tag">repeatable read</a>, <a href="http://vladmihalcea.com/tag/transactions-2/" rel="tag">transactions</a>		</span>
+			</footer><!-- .entry-footer -->
+</article><!-- #post-## -->
+
+				<nav class="navigation post-navigation" role="navigation">
+		<h1 class="screen-reader-text">Post navigation</h1>
+		<div class="nav-links">
+			<div class="nav-previous"><a href="http://vladmihalcea.com/2014/09/08/hibernate-bytecode-enhancement/" rel="prev"><span class="meta-nav">←</span> Hibernate bytecode enhancement</a></div><div class="nav-next"><a href="http://vladmihalcea.com/2014/09/22/preventing-lost-updates-in-long-conversations/" rel="next">Preventing lost updates in long&nbsp;conversations <span class="meta-nav">→</span></a></div>		</div><!-- .nav-links -->
+	</nav><!-- .navigation -->
+	
+			
+<div id="comments" class="comments-area">
+
+	
+	
+	
+							<div id="respond" class="comment-respond js">
+				<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#respond" style="display:none;">Cancel reply</a></small></h3>
+									<form action="http://vladmihalcea.com/wp-comments-post.php" method="post" id="commentform" class="comment-form" novalidate="">
+																										
+
+
+												<input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="5adf2e747a"><input type="hidden" name="_wp_http_referer" value="/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/">
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest">
+
+<div class="comment-form-field comment-textarea">
+	
+	<div id="comment-form-comment"><textarea tabindex="-1" style="position: absolute; top: -999px; left: 0px; right: auto; bottom: auto; border: 0px; padding: 0px; box-sizing: content-box; word-wrap: break-word; overflow: hidden; -webkit-transition: none; transition: none; height: 0px !important; min-height: 0px !important; font-family: Arial, Helvetica, Tahoma, Verdana, sans-serif; font-size: 14px; font-weight: 400; font-style: normal; letter-spacing: 0px; text-transform: none; text-decoration: none; word-spacing: 0px; text-indent: 0px; line-height: normal; width: 638.703125px;" class="autosizejs "></textarea><textarea id="comment" name="comment" title="Enter your comment here..." placeholder="Enter your comment here..." style="height: 36px; overflow: hidden; word-wrap: break-word; resize: none;"></textarea></div>
+</div>
+
+<div id="comment-form-identity" style="display: none;">
+
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#comment-form-guest" id="postas-guest" title="Guest">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#comment-form-load-service:WordPress.com" id="postas-wordpress" title="WordPress.com">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#comment-form-load-service:Twitter" id="postas-twitter" title="Twitter">
+					<span></span>
+				</a>
+			</li>
+			<li>
+				<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#comment-form-load-service:Facebook" id="postas-facebook" title="Facebook">
+					<span></span>
+				</a>
+			</li>
+			<li>
+		</li></ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Gravatar" width="25" class="no-grav">
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value=""></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value=""></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="text" value=""></div>
+				</div>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/wplogo.png" alt="WordPress.com Logo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="">
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="">
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="">
+				<p class="comment-form-posting-as pa-wordpress"><strong></strong> You are commenting using your WordPress.com account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Twitter picture" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="">
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="">
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="">
+				<p class="comment-form-posting-as pa-twitter"><strong></strong> You are commenting using your Twitter account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Facebook photo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="">
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="">
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="">
+				<p class="comment-form-posting-as pa-facebook"><strong></strong> You are commenting using your Facebook account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-googleplus" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/ad516503a11cd5ca435acc9bb6523536" alt="Google+ photo" width="25" class="no-grav">
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="googleplus_avatar" id="googleplus-avatar" class="comment-meta-googleplus" value="">
+				<input type="hidden" name="googleplus_user_id" id="googleplus-user_id" class="comment-meta-googleplus" value="">
+				<input type="hidden" name="googleplus_access_token" id="googleplus-access_token" class="comment-meta-googleplus" value="">
+				<p class="comment-form-posting-as pa-googleplus"><strong></strong> You are commenting using your Google+ account. <span class="comment-form-log-out">(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'googleplus' );">Log&nbsp;Out</a>&nbsp;/&nbsp;<a href="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)</span></p>
+			</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function(){
+	var input = document.createElement( 'input' ),
+	    comment = jQuery( '#comment' );
+
+	if ( 'placeholder' in input ) {
+		comment.attr( 'placeholder', jQuery( '.comment-textarea label' ).remove().text() );
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	jQuery( '#comment-form-identity' ).hide();
+	jQuery( '#comment-form-subscribe' ).hide();
+	jQuery( '#commentform .form-submit' ).hide();
+
+	comment.css( { 'height':'10px' } ).one( 'focus', function() {
+		var timer = setInterval( HighlanderComments.resizeCallback, 10 )
+		jQuery( this ).animate( { 'height': HighlanderComments.initialHeight } ).delay( 100 ).queue( function(n) { clearInterval( timer ); HighlanderComments.resizeCallback(); n(); } );
+		jQuery( '#comment-form-identity' ).slideDown();
+		jQuery( '#comment-form-subscribe' ).slideDown();
+		jQuery( '#commentform .form-submit' ).slideDown();
+	});
+}
+jQuery(document).ready( highlander_expando_javascript );
+</script>
+
+<div id="comment-form-subscribe" style="display: none;">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;" tabindex="6"> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;" tabindex="7"> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog" style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+						
+						<p class="form-submit" style="display: none;"><input name="submit" type="submit" id="comment-submit" class="submit" value="Post Comment"> <input type="hidden" name="comment_post_ID" value="3076" id="comment_post_ID">
+<input type="hidden" name="comment_parent" id="comment_parent" value="0">
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="c5c7ae378b"></p>
+<input type="hidden" name="genseq" value="1431843045">
+<p style="display: none;"></p>					<input type="hidden" id="ak_js" name="ak_js" value="1431843056219"></form>
+							</div><!-- #respond -->
+			<div style="clear: both"></div>
+</div><!-- #comments -->
+
+		
+		</main><!-- #main -->
+	</div><!-- #primary -->
+
+	<div id="secondary" class="widget-area" role="complementary">
+					<div class="social-links"><ul id="menu-social" class="menu"><li id="menu-item-4048" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4048"><a href="https://twitter.com/vlad_mihalcea"><span class="screen-reader-text">Twitter</span></a></li>
+<li id="menu-item-4049" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4049"><a href="https://github.com/vladmihalcea/"><span class="screen-reader-text">GitHub</span></a></li>
+<li id="menu-item-4051" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4051"><a href="https://www.linkedin.com/pub/vlad-mihalcea/20/a59/580"><span class="screen-reader-text">LinkedIn</span></a></li>
+<li id="menu-item-4050" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4050"><a href="https://plus.google.com/u/0/102351970868518518557"><span class="screen-reader-text">Google Plus</span></a></li>
+</ul></div>		
+					<aside id="text-3" class="widget widget_text"><h1 class="widget-title">Newsletter</h1>			<div class="textwidget">I'm writing a <em>High Performance Hibernate</em> book
+<br>
+<a href="http://eepurl.com/bg3d3n">Subscribe</a> to follow my progress
+</div>
+		</aside><aside id="blog_subscription-4" class="widget widget_blog_subscription"><h1 class="widget-title"><label for="subscribe-field">Follow Blog via Email</label></h1>
+				<form action="https://subscribe.wordpress.com/" method="post" accept-charset="utf-8" id="subscribe-blog">
+											<p>Enter your email address to follow this blog and receive notifications of new posts by email.</p>
+<p>Join 904 other followers</p>
+						<p><input type="text" name="email" style="width: 95%; padding: 1px 2px" placeholder="Enter your email address" value="" id="subscribe-field"></p>
+					
+					<p>
+						<input type="hidden" name="action" value="subscribe">
+						<input type="hidden" name="blog_id" value="58563484">
+						<input type="hidden" name="source" value="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/">
+						<input type="hidden" name="sub-type" value="widget">
+						<input type="hidden" name="redirect_fragment" value="blog_subscription-4">
+						<input type="hidden" id="_wpnonce" name="_wpnonce" value="7a7c35068e">						<input type="submit" value="Follow">
+					</p>
+				</form>
+			
+</aside><aside id="search-2" class="widget widget_search"><form role="search" method="get" class="search-form" action="http://vladmihalcea.com/">
+	<label>
+		<span class="screen-reader-text">Search for:</span>
+		<input type="search" class="search-field" placeholder="Search …" value="" name="s">
+	</label>
+	<input type="submit" class="search-submit" value="Search">
+	<span class="genericon genericon-search"></span>
+</form>
+</aside><aside id="tag_cloud-5" class="widget widget_tag_cloud"><h1 class="widget-title"></h1><div style="overflow: hidden;"><a href="http://vladmihalcea.com/category/agile/" style="font-size: 129.16666666667%; padding: 1px; margin: 1px;" title="Agile (10)">Agile</a> <a href="http://vladmihalcea.com/category/anniversary/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="Anniversary (2)">Anniversary</a> <a href="http://vladmihalcea.com/category/architecture/" style="font-size: 122.68518518519%; padding: 1px; margin: 1px;" title="Architecture (8)">Architecture</a> <a href="http://vladmihalcea.com/category/asciidoctor/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Asciidoctor (1)">Asciidoctor</a> <a href="http://vladmihalcea.com/category/awards/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Awards (1)">Awards</a> <a href="http://vladmihalcea.com/category/conference/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Conference (1)">Conference</a> <a href="http://vladmihalcea.com/category/java-2/flexypool/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="FlexyPool (2)">FlexyPool</a> <a href="http://vladmihalcea.com/category/git/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Git (1)">Git</a> <a href="http://vladmihalcea.com/category/java-2/hibernate/" style="font-size: 258.7962962963%; padding: 1px; margin: 1px;" title="Hibernate (50)">Hibernate</a> <a href="http://vladmihalcea.com/category/java-2/" style="font-size: 275%; padding: 1px; margin: 1px;" title="Java (55)">Java</a> <a href="http://vladmihalcea.com/category/javascript/" style="font-size: 106.48148148148%; padding: 1px; margin: 1px;" title="JavaScript (3)">JavaScript</a> <a href="http://vladmihalcea.com/category/java-2/jooq/" style="font-size: 106.48148148148%; padding: 1px; margin: 1px;" title="JOOQ (3)">JOOQ</a> <a href="http://vladmihalcea.com/category/jvm/" style="font-size: 100%; padding: 1px; margin: 1px;" title="JVM (1)">JVM</a> <a href="http://vladmihalcea.com/category/leadership/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Leadership (1)">Leadership</a> <a href="http://vladmihalcea.com/category/learning/" style="font-size: 106.48148148148%; padding: 1px; margin: 1px;" title="Learning (3)">Learning</a> <a href="http://vladmihalcea.com/category/linux-2/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Linux (1)">Linux</a> <a href="http://vladmihalcea.com/category/management/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Management (1)">Management</a> <a href="http://vladmihalcea.com/category/mongodb/" style="font-size: 132.40740740741%; padding: 1px; margin: 1px;" title="MongoDB (11)">MongoDB</a> <a href="http://vladmihalcea.com/category/nosql/" style="font-size: 109.72222222222%; padding: 1px; margin: 1px;" title="NoSQL (4)">NoSQL</a> <a href="http://vladmihalcea.com/category/python/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Python (1)">Python</a> <a href="http://vladmihalcea.com/category/architecture/scalability-architecture/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="Scalability (2)">Scalability</a> <a href="http://vladmihalcea.com/category/scrum/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Scrum (1)">Scrum</a> <a href="http://vladmihalcea.com/category/java-2/spring-java/" style="font-size: 112.96296296296%; padding: 1px; margin: 1px;" title="Spring (5)">Spring</a> <a href="http://vladmihalcea.com/category/java-2/spring-java/spring-integration/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Spring Integration (1)">Spring Integration</a> <a href="http://vladmihalcea.com/category/sql/" style="font-size: 119.44444444444%; padding: 1px; margin: 1px;" title="SQL (7)">SQL</a> <a href="http://vladmihalcea.com/category/testing/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Testing (1)">Testing</a> <a href="http://vladmihalcea.com/category/transactions/" style="font-size: 129.16666666667%; padding: 1px; margin: 1px;" title="Transactions (10)">Transactions</a> <a href="http://vladmihalcea.com/category/uml/" style="font-size: 100%; padding: 1px; margin: 1px;" title="UML (1)">UML</a> <a href="http://vladmihalcea.com/category/unix/" style="font-size: 103.24074074074%; padding: 1px; margin: 1px;" title="Unix (2)">Unix</a> <a href="http://vladmihalcea.com/category/workshop/" style="font-size: 100%; padding: 1px; margin: 1px;" title="Workshop (1)">Workshop</a> </div></aside><aside id="archives-3" class="widget widget_archive"><h1 class="widget-title">Archives</h1>		<ul>
+	<li><a href="http://vladmihalcea.com/2015/05/">May 2015</a>&nbsp;(2)</li>
+	<li><a href="http://vladmihalcea.com/2015/04/">April 2015</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2015/03/">March 2015</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2015/02/">February 2015</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2015/01/">January 2015</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/12/">December 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/11/">November 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/10/">October 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/09/">September 2014</a>&nbsp;(6)</li>
+	<li><a href="http://vladmihalcea.com/2014/08/">August 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/07/">July 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/06/">June 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/05/">May 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/04/">April 2014</a>&nbsp;(6)</li>
+	<li><a href="http://vladmihalcea.com/2014/03/">March 2014</a>&nbsp;(4)</li>
+	<li><a href="http://vladmihalcea.com/2014/02/">February 2014</a>&nbsp;(5)</li>
+	<li><a href="http://vladmihalcea.com/2014/01/">January 2014</a>&nbsp;(7)</li>
+	<li><a href="http://vladmihalcea.com/2013/12/">December 2013</a>&nbsp;(8)</li>
+	<li><a href="http://vladmihalcea.com/2013/11/">November 2013</a>&nbsp;(7)</li>
+	<li><a href="http://vladmihalcea.com/2013/10/">October 2013</a>&nbsp;(9)</li>
+	<li><a href="http://vladmihalcea.com/2013/09/">September 2013</a>&nbsp;(1)</li>
+		</ul>
+</aside>			</div><!-- #secondary -->
+
+	</div><!-- #content -->
+
+	<footer id="colophon" class="site-footer" role="contentinfo">
+				<div class="site-info">
+			<a href="https://wordpress.com/?ref=footer_blog">Blog at WordPress.com</a>.
+			<span class="sep"> | </span>
+			<a href="https://wordpress.com/themes/wilson/" title="Learn more about this theme">The Wilson Theme</a>.		</div><!-- .site-info -->
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!-- wpcom_wp_footer -->
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/gprofiles.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var WPGroHo = {"my_hash":""};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/wpgroho.js"></script>
+
+	<script>
+		//initialize and attach hovercards to all gravatars
+		jQuery( document ).ready( function( $ ) {
+
+			if (typeof Gravatar === "undefined"){
+				return;
+			}
+
+			if ( typeof Gravatar.init !== "function" ) {
+				return;
+			}			
+
+			Gravatar.profile_cb = function( hash, id ) {
+				WPGroHo.syncProfileData( hash, id );
+			};
+			Gravatar.my_hash = WPGroHo.my_hash;
+			Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+		});
+	</script>
+
+		<div style="display:none">
+	</div>
+<script type="text/javascript">
+/* <![CDATA[ */
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/vladmihalcea.wordpress.com\/public.api\/connect\/?action=request","logoutURL":"https:\/\/vladmihalcea.wordpress.com\/wp-login.php?action=logout&_wpnonce=8ebb3791d3","homeURL":"http:\/\/vladmihalcea.com\/","postID":"3076","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"0","text_direction":"ltr"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource(4)"></script>
+
+	<div id="bit" class="loggedout-follow-normal" style="bottom: -306px;">
+		<a class="bsub" href="javascript:void(0)"><span id="bsub-text">Follow</span></a>
+		<div id="bitsubscribe">
+
+					<h3><label for="loggedout-follow-field">Follow “Vlad Mihalcea's Blog”</label></h3>
+
+			<form action="https://subscribe.wordpress.com/" method="post" accept-charset="utf-8" id="loggedout-follow">
+			<p>Get every new post delivered to your Inbox.</p>
+
+			<p id="loggedout-follow-error" style="display: none;"></p>
+
+						<p class="bit-follow-count">Join 904 other followers</p>
+			<p><input type="email" name="email" value="Enter your email address" onfocus="this.value=(this.value==&quot;Enter your email address&quot;) ? &quot;&quot; : this.value;" onblur="this.value=(this.value==&quot;&quot;) ? &quot;Enter your email address&quot; : this.value;" id="loggedout-follow-field"></p>
+
+			<input type="hidden" name="action" value="subscribe">
+			<input type="hidden" name="blog_id" value="58563484">
+			<input type="hidden" name="source" value="http://vladmihalcea.com/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/">
+			<input type="hidden" name="sub-type" value="loggedout-follow">
+
+			<input type="hidden" id="_wpnonce" name="_wpnonce" value="7a7c35068e"><input type="hidden" name="_wp_http_referer" value="/2014/09/14/a-beginners-guide-to-database-locking-and-the-lost-update-phenomena/">
+			<p id="bsub-subscribe-button"><input type="submit" value="Sign me up"></p>
+			</form>
+					<div id="bsub-credit"><a href="https://wordpress.com/?ref=lof">Build a website with WordPress.com</a></div>
+		</div><!-- #bitsubscribe -->
+	</div><!-- #bit -->
+		<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-facebook' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomfacebook', 'menubar=1,resizable=1,width=600,height=400' );
+				return false;
+			});
+		});
+		</script>
+		<div id="fb-root" class=" fb_reset"><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div><iframe name="fb_xdm_frame_http" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_http" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/NM7BtzAR8RM.htm" style="border: none;"></iframe><iframe name="fb_xdm_frame_https" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" id="fb_xdm_frame_https" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/NM7BtzAR8RM(1).htm" style="border: none;"></iframe></div></div><div style="position: absolute; top: -10000px; height: 0px; width: 0px;"><div></div></div></div><script>(function(d, s, id) { var js, fjs = d.getElementsByTagName(s)[0]; if (d.getElementById(id)) return; js = d.createElement(s); js.id = id; js.src = '//connect.facebook.net/en_US/sdk.js#xfbml=1&appId=249643311490&version=v2.3'; fjs.parentNode.insertBefore(js, fjs); }(document, 'script', 'facebook-jssdk'));</script>			<script type="text/javascript">
+			  (function() {
+			    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+			    po.src = 'https://apis.google.com/js/plusone.js';
+			    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+			  })();
+			</script>
+					<script type="text/javascript">
+		jQuery(document).on( 'ready post-load', function(){
+			jQuery( 'a.share-twitter' ).on( 'click', function() {
+				window.open( jQuery(this).attr( 'href' ), 'wpcomtwitter', 'menubar=1,resizable=1,width=600,height=350' );
+				return false;
+			});
+		});
+		</script>
+				<iframe src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/master.htm" scrolling="no" id="likes-master" name="likes-master" style="display:none;"></iframe>
+		<div id="likes-other-gravatars"><div class="likes-text"><span>%d</span> bloggers like this:</div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+		<script type="text/javascript">
+		//<![CDATA[
+			var jetpackLikesWidgetQueue = [];
+			var jetpackLikesWidgetBatch = [];
+			var jetpackLikesMasterReady = false;
+
+			function JetpackLikespostMessage( message, target ) {
+				if ( "string" === typeof message ){
+					try{
+						message = JSON.parse( message );
+					}
+					catch(e) {
+						return;
+					}
+				}
+
+				pm( {
+					target: target,
+					type: 'likesMessage',
+					data: message,
+					origin: '*'
+				} );
+			}
+
+			function JetpackLikesBatchHandler() {
+				var requests = [];
+				jQuery( 'div.jetpack-likes-widget-unloaded' ).each( function( i ) {
+					if ( jetpackLikesWidgetBatch.indexOf( this.id ) > -1 )
+						return;
+					jetpackLikesWidgetBatch.push( this.id );
+					var regex = /like-(post|comment)-wrapper-(\d+)-(\d+)-(\w+)/;
+					var match = regex.exec( this.id );
+					if ( ! match || match.length != 5 )
+						return;
+
+					var info = {
+						blog_id: match[2],
+						width:   this.width
+					};
+
+					if ( 'post' == match[1] ) {
+						info.post_id = match[3];
+					} else if ( 'comment' == match[1] ) {
+						info.comment_id = match[3];
+					}
+
+					info.obj_id = match[4];
+
+					requests.push( info );
+				});
+
+				if ( requests.length > 0 ) {
+					JetpackLikespostMessage( { event: 'initialBatch', requests: requests }, window.frames['likes-master'] );
+				}
+			}
+
+			function JetpackLikesMessageListener( event ) {
+				if ( "undefined" == typeof event.event )
+					return;
+
+				if ( 'masterReady' == event.event ) {
+					jQuery( document ).ready( function() {
+						jetpackLikesMasterReady = true;
+
+						var stylesData = {
+								event: 'injectStyles'
+						};
+
+						if ( jQuery( 'iframe.admin-bar-likes-widget' ).length > 0 ) {
+							JetpackLikespostMessage( { event: 'adminBarEnabled' }, window.frames[ 'likes-master' ] );
+
+							stylesData.adminBarStyles = {
+								background: jQuery( '#wpadminbar .quicklinks li#wp-admin-bar-wpl-like > a' ).css( 'background' ),
+								isRtl: ( 'rtl' == jQuery( '#wpadminbar' ).css( 'direction' ) )
+							};
+						}
+
+						if ( !window.addEventListener )
+							jQuery( '#wp-admin-bar-admin-bar-likes-widget' ).hide();
+
+						stylesData.textStyles = {
+							color: jQuery( '.sd-text-color').css( 'color' ),
+							fontFamily: jQuery( '.sd-text-color' ).css( 'font-family' ),
+							fontSize: jQuery( '.sd-text-color' ).css( 'font-size' ),
+							direction: jQuery( '.sd-text-color' ).css( 'direction' ),
+							fontWeight: jQuery( '.sd-text-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-text-color' ).css( 'font-style' ),
+							textDecoration: jQuery( '.sd-text-color' ).css('text-decoration')
+						};
+
+						stylesData.linkStyles = {
+							color: jQuery( '.sd-link-color' ).css('color'),
+							fontFamily: jQuery( '.sd-link-color' ).css('font-family'),
+							fontSize: jQuery( '.sd-link-color' ).css('font-size'),
+							textDecoration: jQuery( '.sd-link-color' ).css('text-decoration'),
+							fontWeight: jQuery( '.sd-link-color' ).css( 'font-weight' ),
+							fontStyle: jQuery( '.sd-link-color' ).css( 'font-style' )
+						};
+
+						JetpackLikespostMessage( stylesData, window.frames[ 'likes-master' ] );
+
+						JetpackLikesBatchHandler();
+
+						jQuery( document ).on( 'inview', 'div.jetpack-likes-widget-unloaded', function() {
+							jetpackLikesWidgetQueue.push( this.id );
+						});
+					});
+				}
+
+				if ( 'showLikeWidget' == event.event ) {
+					jQuery( '#' + event.id + ' .post-likes-widget-placeholder'  ).fadeOut( 'fast', function() {
+						jQuery( '#' + event.id + ' .post-likes-widget' ).fadeIn( 'fast', function() {
+							JetpackLikespostMessage( { event: 'likeWidgetDisplayed', blog_id: event.blog_id, post_id: event.post_id, obj_id: event.obj_id }, window.frames['likes-master'] );
+						});
+					});
+				}
+
+				if ( 'clickReblogFlair' == event.event ) {
+					wpcom_reblog.toggle_reblog_box_flair( event.obj_id );
+				}
+
+				if ( 'showOtherGravatars' == event.event ) {
+					var $container = jQuery( '#likes-other-gravatars' );
+					var $list = $container.find( 'ul' );
+
+					$container.hide();
+					$list.html( '' );
+
+					$container.find( '.likes-text span' ).text( event.total );
+
+					jQuery.each( event.likers, function( i, liker ) {
+						$list.append( '<li class="' + liker.css_class + '"><a href="' + liker.profile_URL + '" class="wpl-liker" rel="nofollow" target="_parent"><img src="' + liker.avatar_URL + '" alt="' + liker.name + '" width="30" height="30" style="padding-right: 3px;" /></a></li>');
+					} );
+
+					var offset = jQuery( "[name='" + event.parent + "']" ).offset();
+
+					$container.css( 'left', offset.left + event.position.left - 10 + 'px' );
+					$container.css( 'top', offset.top + event.position.top - 33 + 'px' );
+
+					var rowLength = Math.floor( event.width / 37 );
+					var height = ( Math.ceil( event.likers.length / rowLength ) * 37 ) + 13;
+					if ( height > 204 ) {
+						height = 204;
+					}
+
+					$container.css( 'height', height + 'px' );
+					$container.css( 'width', rowLength * 37 - 7 + 'px' );
+
+					$list.css( 'width', rowLength * 37 + 'px' );
+
+					$container.fadeIn( 'slow' );
+
+					var scrollbarWidth = $list[0].offsetWidth - $list[0].clientWidth;
+					if ( scrollbarWidth > 0 ) {
+						$container.width( $container.width() + scrollbarWidth );
+						$list.width( $list.width() + scrollbarWidth );
+					}
+				}
+			}
+
+			pm.bind( 'likesMessage', function(e) { JetpackLikesMessageListener(e); } );
+
+			jQuery( document ).click( function( e ) {
+				var $container = jQuery( '#likes-other-gravatars' );
+
+				if ( $container.has( e.target ).length === 0 ) {
+					$container.fadeOut( 'slow' );
+				}
+			});
+
+			function JetpackLikesWidgetQueueHandler() {
+				var wrapperID;
+				if ( ! jetpackLikesMasterReady ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				if ( jetpackLikesWidgetQueue.length > 0 ) {
+					// We may have a widget that needs creating now
+					var found = false;
+					while( jetpackLikesWidgetQueue.length > 0 ) {
+						// Grab the first member of the queue that isn't already loading.
+						wrapperID = jetpackLikesWidgetQueue.splice( 0, 1 )[0];
+						if ( jQuery( '#' + wrapperID ).hasClass( 'jetpack-likes-widget-unloaded' ) ) {
+							found = true;
+							break;
+						}
+					}
+					if ( ! found ) {
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				} else if ( jQuery( 'div.jetpack-likes-widget-unloaded' ).length > 0 ) {
+					// Grab any unloaded widgets for a batch request
+					JetpackLikesBatchHandler();
+
+					// Get the next unloaded widget
+					wrapperID = jQuery( 'div.jetpack-likes-widget-unloaded' ).first()[0].id;
+					if ( ! wrapperID ) {
+						// Everything is currently loaded
+						setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+						return;
+					}
+				}
+
+				if ( 'undefined' === typeof wrapperID ) {
+					setTimeout( JetpackLikesWidgetQueueHandler, 500 );
+					return;
+				}
+
+				var $wrapper = jQuery( '#' + wrapperID );
+				$wrapper.find( 'iframe' ).remove();
+
+				if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='22px' width='68px' frameBorder='0' scrolling='no' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				} else {
+					$wrapper.find( '.post-likes-widget-placeholder' ).after( "<iframe class='post-likes-widget jetpack-likes-widget' name='" + $wrapper.data( 'name' ) + "' height='55px' width='100%' frameBorder='0' src='" + $wrapper.data( 'src' ) + "'></iframe>" );
+				}
+
+				$wrapper.removeClass( 'jetpack-likes-widget-unloaded' ).addClass( 'jetpack-likes-widget-loading' );
+
+				$wrapper.find( 'iframe' ).load( function( e ) {
+					var $iframe = jQuery( e.target );
+					$wrapper.removeClass( 'jetpack-likes-widget-loading' ).addClass( 'jetpack-likes-widget-loaded' );
+
+					JetpackLikespostMessage( { event: 'loadLikeWidget', name: $iframe.attr( 'name' ), width: $iframe.width() }, window.frames[ 'likes-master' ] );
+
+					if ( $wrapper.hasClass( 'slim-likes-widget' ) ) {
+						$wrapper.find( 'iframe' ).Jetpack( 'resizeable' );
+					}
+				});
+				setTimeout( JetpackLikesWidgetQueueHandler, 250 );
+			}
+			JetpackLikesWidgetQueueHandler();
+		//]]>
+		</script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/form.js"></script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource(5)"></script><iframe name="oauth2relay507070842" id="oauth2relay507070842" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/postmessageRelay.htm" tabindex="-1" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe>
+<script type="text/javascript">
+	(function(){
+		var corecss = document.createElement('link');
+		var themecss = document.createElement('link');
+		var corecssurl = "http://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shCore.css?m=1422342134g&amp;ver=3.0.9b";
+		if ( corecss.setAttribute ) {
+				corecss.setAttribute( "rel", "stylesheet" );
+				corecss.setAttribute( "type", "text/css" );
+				corecss.setAttribute( "href", corecssurl );
+		} else {
+				corecss.rel = "stylesheet";
+				corecss.href = corecssurl;
+		}
+		document.getElementsByTagName("head")[0].insertBefore( corecss, document.getElementById("syntaxhighlighteranchor") );
+		var themecssurl = "http://s0.wp.com/wp-content/plugins/syntaxhighlighter/syntaxhighlighter3/styles/shThemeDefault.css?m=1363304414g&amp;ver=3.0.9b";
+		if ( themecss.setAttribute ) {
+				themecss.setAttribute( "rel", "stylesheet" );
+				themecss.setAttribute( "type", "text/css" );
+				themecss.setAttribute( "href", themecssurl );
+		} else {
+				themecss.rel = "stylesheet";
+				themecss.href = themecssurl;
+		}
+		//document.getElementById("syntaxhighlighteranchor").appendChild(themecss);
+		document.getElementsByTagName("head")[0].insertBefore( themecss, document.getElementById("syntaxhighlighteranchor") );
+	})();
+	SyntaxHighlighter.config.strings.expandSource = '+ expand source';
+	SyntaxHighlighter.config.strings.help = '?';
+	SyntaxHighlighter.config.strings.alert = 'SyntaxHighlighter\n\n';
+	SyntaxHighlighter.config.strings.noBrush = 'Can\'t find brush for: ';
+	SyntaxHighlighter.config.strings.brushNotHtmlScript = 'Brush wasn\'t configured for html-script option: ';
+	SyntaxHighlighter.defaults['pad-line-numbers'] = false;
+	SyntaxHighlighter.defaults['toolbar'] = false;
+	SyntaxHighlighter.all();
+</script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var JetpackEmojiSettings = {"base_url":"http:\/\/s0.wp.com\/wp-content\/mu-plugins\/emoji\/twemoji\/"};
+/* ]]> */
+</script>
+<script type="text/javascript">
+/* <![CDATA[ */
+var sharing_js_options = {"lang":"en","counts":"1"};
+/* ]]> */
+</script>
+<script type="text/javascript" src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/saved_resource(6)"></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/w.js" type="text/javascript" async="" defer=""></script>
+<script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'58563484','blog_tz':'2','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'58563484','v':'wpcom','tz':'2','user_id':'0','post':'3076','subd':'vladmihalcea'}]);
+_stq.push(['extra', {'crypt':'UE5XaGUuOTlwaD85flAmcm1mcmZsaDhkV11YdWtpP0NsWnVkPS9sL0ViLndld3AsdkJ1cXFURjg1cFN+Z1c3MHQydVg3cTBuL0VLL1ZwbmhsV0hlUFdwMm1rVGptMmJ8Wj0uaXdJek95SWNLaXJOay1EP0xWfGVfMzhpfEd5RkxzSD9Kanc3dElXdndwXXxvPzNUeWZMemYtMTVTaVVxbVE3OSVtem8uSDhPL0VlJnJMPzdQc2UrZkQmbCsyVUwvaXpULl1qREdsWVt+c201NXpWVDdJMy8zPTBKR0NXN3B5LU93aWlVV2R5ZE4/MGdMWWVMVkxzL1YldlgmdEpbSyxfbC9YUUl3WGtoP1RSb19aRHBbdCZfVmtTYit8Zzc0bkkvdGZacXpVK2F5Zl0sTCtGOHFSRTJzd0UzTDM/ZV1vWjI1RnNkNHVNNQ=='}]);
+_stq.push([ 'clickTrackerInit', '58563484', '3076' ]);
+	</script>
+<noscript>&lt;img src="http://pixel.wp.com/b.gif?v=noscript" style="height:0px;width:0px;overflow:hidden" alt="" /&gt;</noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+
+
+<img src="./A beginner’s guide to database locking and the lost update phenomena   Vlad Mihalcea's Blog_files/g.gif" id="wpstats"><iframe id="google_osd_static_frame_1446637155022" name="google_osd_static_frame" style="display: none; width: 0px; height: 0px;"></iframe></body></html>
